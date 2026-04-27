@@ -20,11 +20,10 @@ export default await Env.create(new URL('../', import.meta.url), {
 
   /*
   |--------------------------------------------------------------------------
-  | Auth / External Services
+  | Auth
   |--------------------------------------------------------------------------
   */
   JWT_SECRET: Env.schema.string(),
-  GOOGLE_CLIENT_ID: Env.schema.string(),
 
   /*
   |--------------------------------------------------------------------------
@@ -39,15 +38,11 @@ export default await Env.create(new URL('../', import.meta.url), {
 
   /*
   |--------------------------------------------------------------------------
-  | Variables for configuring the mail package
+  | Frontend URL
   |--------------------------------------------------------------------------
+  | Dipakai untuk membuat link reset password.
+  | Link tidak dikirim email, tapi dikembalikan lewat response API.
+  |
   */
-  SMTP_HOST: Env.schema.string(),
-  SMTP_PORT: Env.schema.number(),
-  SMTP_USERNAME: Env.schema.string(),
-  SMTP_PASSWORD: Env.schema.string(),
-  SMTP_SECURE: Env.schema.boolean(),
-  MAIL_FROM_ADDRESS: Env.schema.string(),
-  MAIL_FROM_NAME: Env.schema.string(),
   FRONTEND_URL: Env.schema.string(),
 })

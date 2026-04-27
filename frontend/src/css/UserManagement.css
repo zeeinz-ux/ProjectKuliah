@@ -299,6 +299,258 @@
 }
 
 /* =========================================================
+   Global Confirm Delete Modal Style
+   Patokan style: Calendar Delete Event modal
+   ========================================================= */
+
+.notification-modal-overlay,
+.user-delete-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 24px;
+  background: rgba(15, 23, 42, 0.42);
+  backdrop-filter: blur(9px);
+  -webkit-backdrop-filter: blur(9px);
+}
+
+.notification-confirm-modal,
+.user-delete-modal {
+  position: relative;
+
+  width: min(500px, calc(100vw - 32px));
+  padding: 34px 28px 28px;
+
+  border: none;
+  border-radius: 30px;
+  background: #ffffff;
+
+  box-shadow: 0 30px 90px rgba(15, 23, 42, 0.28);
+  text-align: left;
+
+  animation: appConfirmModalPop 0.22s ease;
+}
+
+/* Tombol X kanan atas */
+.notification-confirm-close,
+.user-delete-modal__close {
+  position: absolute;
+  top: 26px;
+  right: 26px;
+
+  width: 46px;
+  height: 46px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+  border-radius: 50%;
+
+  background: #f1f5f9;
+  color: #64748b;
+
+  cursor: pointer;
+  font-size: 24px;
+  line-height: 1;
+  font-weight: 400;
+
+  transition: 0.2s ease;
+}
+
+.notification-confirm-close:hover,
+.user-delete-modal__close:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+/* Hilangkan icon merah lama kalau masih ada */
+.notification-confirm-icon,
+.user-delete-modal__icon {
+  display: none;
+}
+
+/* Judul modal */
+.notification-confirm-modal h3,
+.user-delete-modal h3 {
+  max-width: calc(100% - 60px);
+  margin: 0;
+
+  color: #0f172a;
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1.2;
+  letter-spacing: -0.04em;
+}
+
+/* Deskripsi */
+.notification-confirm-modal p,
+.user-delete-modal p {
+  margin: 14px 0 0;
+
+  color: #64748b;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.7;
+}
+
+.notification-confirm-modal p strong,
+.user-delete-modal__target {
+  color: #0f172a;
+  font-weight: 800;
+}
+
+/* Error di dalam modal */
+.notification-confirm-error,
+.user-delete-modal__error {
+  margin-top: 18px;
+  padding: 12px 14px;
+
+  border: 1px solid #fecaca;
+  border-radius: 16px;
+
+  background: #fef2f2;
+  color: #dc2626;
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* Area tombol */
+.notification-confirm-actions,
+.user-delete-modal__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+
+  margin-top: 30px;
+}
+
+/* Tombol Cancel */
+.notification-cancel-btn,
+.user-delete-modal__cancel {
+  min-width: 96px;
+  min-height: 52px;
+  padding: 0 24px;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+
+  background: #ffffff;
+  color: #0f172a;
+
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 800;
+
+  transition: 0.2s ease;
+}
+
+.notification-cancel-btn:hover,
+.user-delete-modal__cancel:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+/* Tombol Delete */
+.notification-danger-btn,
+.user-delete-modal__danger {
+  min-width: 96px;
+  min-height: 52px;
+  padding: 0 24px;
+
+  border: none;
+  border-radius: 18px;
+
+  background: #ef0012;
+  color: #ffffff;
+
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 900;
+
+  box-shadow: none;
+  transition: 0.2s ease;
+}
+
+.notification-danger-btn:hover,
+.user-delete-modal__danger:hover {
+  background: #dc0010;
+  transform: translateY(-1px);
+}
+
+.notification-cancel-btn:disabled,
+.notification-danger-btn:disabled,
+.user-delete-modal__cancel:disabled,
+.user-delete-modal__danger:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@keyframes appConfirmModalPop {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Responsive mobile */
+@media (max-width: 480px) {
+  .notification-modal-overlay,
+  .user-delete-modal-overlay {
+    padding: 18px;
+  }
+
+  .notification-confirm-modal,
+  .user-delete-modal {
+    width: 100%;
+    padding: 30px 22px 22px;
+    border-radius: 26px;
+  }
+
+  .notification-confirm-close,
+  .user-delete-modal__close {
+    top: 20px;
+    right: 20px;
+    width: 42px;
+    height: 42px;
+  }
+
+  .notification-confirm-modal h3,
+  .user-delete-modal h3 {
+    font-size: 24px;
+  }
+
+  .notification-confirm-actions,
+  .user-delete-modal__actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .notification-cancel-btn,
+  .notification-danger-btn,
+  .user-delete-modal__cancel,
+  .user-delete-modal__danger {
+    width: 100%;
+  }
+}
+
+/* =========================================================
    Table
    ========================================================= */
 .user-management-page .user-table-responsive {

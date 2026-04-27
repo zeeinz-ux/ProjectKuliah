@@ -1,388 +1,442 @@
-:root {
-  --field-upload-bg: #ffffff;
-  --field-upload-line: #d9e0e5;
-  --field-upload-line-soft: #e9eef2;
-  --field-upload-text: #101828;
-  --field-upload-heading: #0f1728;
-  --field-upload-muted: #667085;
-  --field-upload-green: #0f9d58;
-  --field-upload-green-dark: #0b8449;
-  --field-upload-green-soft: #e8f5ec;
-  --field-upload-green-soft-2: #f2fbf5;
-  --field-upload-surface: #fbfcfc;
-  --field-upload-surface-2: #f8fbf9;
-  --field-upload-gray-soft: #fafafa;
-  --field-upload-gray-soft-2: #fcfcfd;
-  --field-upload-border-soft: #e4e7ec;
-  --field-upload-error-bg: #fef3f2;
-  --field-upload-error-text: #b42318;
-  --field-upload-error-border: #fecdca;
-  --field-upload-success-bg: #ecfdf3;
-  --field-upload-success-text: #067647;
-  --field-upload-success-border: #abefc6;
-  --field-upload-shadow: 0 8px 24px rgba(16, 24, 40, 0.05);
+@reference "../index.css";
+
+.field-files-page {
+  @apply min-h-screen w-full overflow-x-hidden bg-slate-50 px-3 py-4 text-slate-900 md:px-5 md:py-5 xl:px-6 xl:py-6;
 }
 
-/* =========================================================
-   Scope FieldFileUpload
-   ========================================================= */
-.field-upload-card * {
-  box-sizing: border-box;
-}
-
-/* =========================================================
-   Card utama
-   ========================================================= */
-.field-upload-card {
-  width: 100%;
-  max-width: 760px;
-  background: var(--field-upload-bg);
-  border: 1px solid var(--field-upload-line);
-  border-radius: 24px;
-  box-shadow: var(--field-upload-shadow);
-  overflow: hidden;
-  font-family: Inter, "Segoe UI", Arial, sans-serif;
-  color: var(--field-upload-text);
-}
-
-.field-upload-header {
-  padding: 24px 24px 16px;
-  border-bottom: 1px solid var(--field-upload-line-soft);
-  background: var(--field-upload-surface);
-}
-
-.field-upload-eyebrow {
-  display: inline-block;
-  margin-bottom: 8px;
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--field-upload-green);
-}
-
-.field-upload-header h2 {
+.field-files-shell {
+  @apply w-full max-w-none space-y-6;
   margin: 0;
-  font-size: 28px;
-  font-weight: 800;
-  color: var(--field-upload-heading);
-  line-height: 1.2;
 }
 
-.field-upload-header p {
-  margin: 8px 0 0;
-  color: var(--field-upload-muted);
-  font-size: 14px;
-  line-height: 1.7;
+.field-files-card,
+.field-files-toolbar,
+.field-files-table-card,
+.field-files-grid-card {
+  @apply rounded-3xl border border-slate-200 bg-white shadow-sm;
 }
 
-.field-upload-body {
-  padding: 24px;
-}
-
-/* =========================================================
-   Dropzone
-   ========================================================= */
-.field-upload-dropzone {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-height: 190px;
-  border: 2px dashed #cfd8dc;
-  border-radius: 20px;
-  background: var(--field-upload-surface-2);
-  color: #344054;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  padding: 24px;
-}
-
-.field-upload-dropzone:hover,
-.field-upload-dropzone.is-drag-active {
-  border-color: var(--field-upload-green);
-  background: var(--field-upload-green-soft-2);
-}
-
-.field-upload-dropzone input {
-  display: none;
-}
-
-.field-upload-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 16px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--field-upload-green-soft);
-  color: var(--field-upload-green);
-  font-size: 28px;
-  font-weight: 700;
-}
-
-.field-upload-dropzone strong {
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.field-upload-dropzone small {
-  color: var(--field-upload-muted);
-  font-size: 13px;
-  line-height: 1.6;
-}
-
-/* =========================================================
-   Informasi file
-   ========================================================= */
-.field-upload-file-info {
-  margin-top: 18px;
-  padding: 16px 18px;
-  border: 1px solid var(--field-upload-border-soft);
-  border-radius: 16px;
-  background: var(--field-upload-gray-soft);
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.field-upload-file-meta p {
-  margin: 8px 0;
-  font-size: 14px;
-  color: #344054;
-  line-height: 1.6;
-}
-
-.field-upload-file-meta span {
-  font-weight: 700;
-  color: var(--field-upload-text);
-}
-
-/* =========================================================
-   Preview lokal
-   ========================================================= */
-.field-upload-local-preview {
-  margin-top: 22px;
-}
-
-.field-upload-local-preview h3 {
-  margin: 0 0 14px;
-  font-size: 18px;
-  color: var(--field-upload-text);
-}
-
-.field-upload-preview-wrapper {
-  width: 180px;
-  height: 180px;
-  border-radius: 16px;
-  overflow: hidden;
-  border: 1px solid var(--field-upload-border-soft);
-  background: #f2f4f7;
-}
-
-.field-upload-preview-image {
+.field-files-card,
+.field-files-toolbar,
+.field-files-table-card {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
+  max-width: none;
+}
+
+.field-files-header {
+  @apply flex flex-col gap-5 border-b border-slate-200 px-6 py-6 md:flex-row md:items-start md:justify-between;
+}
+
+.field-files-header-main {
+  @apply max-w-4xl;
+}
+
+.field-files-eyebrow {
+  @apply text-xs font-bold uppercase tracking-[0.22em] text-emerald-600;
+}
+
+.field-files-title {
+  @apply mt-3 text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl;
+}
+
+.field-files-description {
+  @apply mt-3 text-sm leading-7 text-slate-500 md:text-base;
+}
+
+.field-files-storage {
+  @apply min-w-[220px] rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-4;
+}
+
+.field-files-storage-label {
+  @apply flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-emerald-700;
+}
+
+.field-files-storage-value {
+  @apply mt-2 text-lg font-bold text-slate-900;
+}
+
+.field-files-storage-note {
+  @apply mt-1 text-xs text-slate-500;
+}
+
+.field-files-body {
+  @apply px-6 py-6;
+}
+
+.field-files-dropzone {
+  @apply rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50 px-6 py-10 text-center transition;
+}
+
+.field-files-dropzone.is-drag-active {
+  @apply border-emerald-400 bg-emerald-50;
+}
+
+.field-files-drop-icon {
+  @apply mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-2xl text-emerald-600;
+}
+
+.field-files-drop-title {
+  @apply mt-5 text-xl font-bold text-slate-800;
+}
+
+.field-files-drop-note {
+  @apply mt-2 text-sm text-slate-500;
+}
+
+.field-files-primary-btn {
+  @apply inline-flex items-center justify-center rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60;
+}
+
+.field-files-dropzone .field-files-primary-btn {
+  @apply mt-6;
+}
+
+.field-files-upload-panel {
+  @apply mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4;
+}
+
+.field-files-upload-head {
+  @apply flex flex-col gap-4 md:flex-row md:items-center md:justify-between;
+}
+
+.field-files-upload-title {
+  @apply text-sm font-bold text-slate-800;
+}
+
+.field-files-upload-subtitle {
+  @apply mt-1 text-xs text-slate-500;
+}
+
+.field-files-upload-actions {
+  @apply flex flex-col gap-3 sm:flex-row;
+}
+
+.field-files-select {
+  @apply rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100;
+}
+
+.field-files-chip-list {
+  @apply mt-4 flex flex-wrap gap-2;
+}
+
+.field-files-chip {
+  @apply inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600;
+}
+
+.field-files-chip-text {
+  @apply max-w-[240px] truncate font-medium text-slate-700;
+}
+
+.field-files-chip-close {
+  @apply rounded-full p-1 text-slate-400 transition hover:bg-slate-100 hover:text-rose-500;
+}
+
+.field-files-message {
+  @apply mt-4 rounded-2xl px-4 py-3 text-sm font-medium;
+}
+
+.field-files-message.is-error {
+  @apply border border-rose-200 bg-rose-50 text-rose-700;
+}
+
+.field-files-message.is-success {
+  @apply border border-emerald-200 bg-emerald-50 text-emerald-700;
+}
+
+.field-files-toolbar {
+  @apply flex flex-col gap-4 p-4 xl:flex-row xl:items-center xl:justify-between;
+}
+
+.field-files-tabs {
+  @apply flex flex-wrap gap-2;
+}
+
+.field-files-tab {
+  @apply rounded-xl bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100;
+}
+
+.field-files-tab.is-active {
+  @apply bg-emerald-600 text-white shadow-sm hover:bg-emerald-600;
+}
+
+.field-files-tools {
+  @apply flex flex-col gap-3 sm:flex-row sm:items-center;
+}
+
+.field-files-search {
+  @apply relative w-full sm:w-80;
+}
+
+.field-files-search svg {
+  @apply pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400;
+}
+
+.field-files-search input {
+  @apply w-full rounded-xl border border-slate-200 bg-white py-3 pl-10 pr-4 text-sm text-slate-700 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100;
+}
+
+.field-files-view-toggle {
+  @apply inline-flex overflow-hidden rounded-xl border border-slate-200 bg-white;
+}
+
+.field-files-view-btn {
+  @apply inline-flex h-11 w-11 items-center justify-center text-slate-500 transition hover:bg-slate-50;
+}
+
+.field-files-view-btn.is-active {
+  @apply bg-emerald-600 text-white hover:bg-emerald-600;
+}
+
+.field-files-table-card {
+  @apply overflow-hidden;
+}
+
+.field-files-table-head {
+  @apply flex flex-col gap-4 border-b border-slate-200 px-6 py-5 md:flex-row md:items-center md:justify-between;
+}
+
+.field-files-table-title {
+  @apply text-xl font-bold text-slate-900;
+}
+
+.field-files-table-meta {
+  @apply mt-1 text-sm text-slate-500;
+}
+
+.field-files-secondary-btn {
+  @apply inline-flex items-center gap-2 self-start rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+.field-files-table-wrapper {
+  @apply w-full overflow-x-auto;
+}
+
+.field-files-table {
+  @apply w-full min-w-[980px];
+}
+
+.field-files-table thead {
+  @apply bg-slate-50;
+}
+
+.field-files-table thead th {
+  @apply px-6 py-4 text-left text-[11px] uppercase tracking-[0.14em] text-slate-400;
+}
+
+.field-files-table tbody tr {
+  @apply border-t border-slate-100 transition hover:bg-slate-50/70;
+}
+
+.field-files-table tbody td {
+  @apply px-6 py-4 align-middle text-sm text-slate-600;
+}
+
+.field-files-table tbody td:last-child {
+  @apply text-right;
+}
+
+.field-files-row-name {
+  @apply flex min-w-0 items-center gap-3;
+}
+
+.field-files-row-icon {
+  @apply flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg;
+}
+
+.field-files-row-icon.is-excel {
+  @apply bg-emerald-50 text-emerald-600;
+}
+
+.field-files-row-icon.is-pdf {
+  @apply bg-rose-50 text-rose-600;
+}
+
+.field-files-row-icon.is-generic {
+  @apply bg-slate-100 text-slate-600;
+}
+
+.field-files-row-title {
+  @apply max-w-[420px] truncate text-sm font-semibold text-slate-800;
+}
+
+.field-files-row-subtitle {
+  @apply mt-1 text-xs text-slate-400;
+}
+
+.field-files-badge {
+  @apply inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset;
+}
+
+.field-files-badge.is-blueprint {
+  @apply bg-sky-50 text-sky-700 ring-sky-200;
+}
+
+.field-files-badge.is-excel {
+  @apply bg-emerald-50 text-emerald-700 ring-emerald-200;
+}
+
+.field-files-badge.is-invoice {
+  @apply bg-amber-50 text-amber-700 ring-amber-200;
+}
+
+.field-files-badge.is-other {
+  @apply bg-slate-100 text-slate-700 ring-slate-200;
+}
+
+.field-files-actions {
+  @apply flex items-center justify-end gap-2;
+}
+
+.field-files-icon-btn {
+  @apply inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+.field-files-icon-btn.is-danger {
+  @apply border-rose-200 text-rose-600 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700;
+}
+
+.field-files-empty {
+  @apply px-6 py-10 text-sm text-slate-500;
+}
+
+.field-files-grid {
+  @apply grid w-full gap-4 p-6 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4;
+}
+
+.field-files-grid-card {
+  @apply p-4;
+}
+
+.field-files-grid-top {
+  @apply flex items-start justify-between gap-3;
+}
+
+.field-files-grid-meta {
+  @apply mt-4 flex items-center justify-between text-xs text-slate-500;
 }
 
 /* =========================================================
-   Actions
+   Delete File Modal
+   Style mengikuti patokan Delete Event
    ========================================================= */
-.field-upload-actions {
-  margin-top: 18px;
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
+
+.field-files-modal-backdrop {
+  @apply fixed inset-0 z-[1000000] flex items-center justify-center bg-slate-900/45 px-4 backdrop-blur-[9px];
 }
 
-.field-upload-btn {
-  min-height: 46px;
-  padding: 0 18px;
-  border: none;
-  border-radius: 14px;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: inherit;
+.field-files-modal {
+  @apply relative w-full max-w-[500px] rounded-[30px] border-0 bg-white px-7 pb-7 pt-9 text-left shadow-[0_30px_90px_rgba(15,23,42,0.28)];
+  animation: fieldFilesModalPop 0.22s ease;
 }
 
-.field-upload-btn--primary {
-  background: var(--field-upload-green);
-  color: #ffffff;
+.field-files-modal-close {
+  @apply absolute right-7 top-7 flex h-11 w-11 items-center justify-center rounded-full border-0 bg-slate-100 text-2xl leading-none text-slate-500 transition hover:bg-slate-200 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-60;
 }
 
-.field-upload-btn--primary:hover:not(:disabled) {
-  background: var(--field-upload-green-dark);
+.field-files-modal-title {
+  @apply max-w-[calc(100%-64px)] text-[28px] font-extrabold leading-tight tracking-[-0.04em] text-slate-900;
 }
 
-.field-upload-btn--ghost {
-  background: #ffffff;
-  color: var(--field-upload-text);
-  border: 1px solid var(--field-upload-line);
+.field-files-modal-text {
+  @apply mt-4 text-[15px] font-medium leading-7 text-slate-500;
 }
 
-.field-upload-btn--ghost:hover:not(:disabled) {
-  background: #f8fafc;
+.field-files-modal-file-name {
+  @apply mt-3 max-h-16 overflow-hidden break-words rounded-2xl bg-slate-50 px-4 py-3 text-sm font-bold text-slate-700;
 }
 
-.field-upload-btn:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
+.field-files-modal-error {
+  @apply mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-600;
 }
 
-/* =========================================================
-   Message
-   ========================================================= */
-.field-upload-message {
-  margin-top: 16px;
-  padding: 14px 16px;
-  border-radius: 14px;
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 1.6;
+.field-files-modal-actions {
+  @apply mt-8 flex items-center justify-end gap-3.5;
 }
 
-.field-upload-message--error {
-  background: var(--field-upload-error-bg);
-  color: var(--field-upload-error-text);
-  border: 1px solid var(--field-upload-error-border);
+.field-files-modal-cancel {
+  @apply inline-flex min-h-[52px] min-w-24 items-center justify-center rounded-[18px] border border-slate-200 bg-white px-6 text-[15px] font-extrabold text-slate-900 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60;
 }
 
-.field-upload-message--success {
-  background: var(--field-upload-success-bg);
-  color: var(--field-upload-success-text);
-  border: 1px solid var(--field-upload-success-border);
+.field-files-modal-delete {
+  @apply inline-flex min-h-[52px] min-w-24 items-center justify-center rounded-[18px] border-0 bg-[#ef0012] px-6 text-[15px] font-extrabold text-white transition hover:-translate-y-0.5 hover:bg-[#dc0010] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0;
 }
 
-/* =========================================================
-   Hasil upload
-   ========================================================= */
-.field-upload-result-box {
-  margin-top: 22px;
-  padding: 18px;
-  border: 1px solid var(--field-upload-border-soft);
-  border-radius: 18px;
-  background: var(--field-upload-gray-soft-2);
-}
+@keyframes fieldFilesModalPop {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.96);
+  }
 
-.field-upload-result-box h3 {
-  margin: 0 0 14px;
-  font-size: 18px;
-  color: var(--field-upload-text);
-}
-
-.field-upload-pdf-preview {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px;
-  border-radius: 14px;
-  background: #f9fafb;
-  border: 1px solid var(--field-upload-border-soft);
-  margin-bottom: 16px;
-}
-
-.field-upload-pdf-preview p {
-  margin: 0;
-  color: #344054;
-  font-size: 14px;
-}
-
-.field-upload-pdf-badge {
-  min-width: 54px;
-  height: 34px;
-  border-radius: 999px;
-  background: var(--field-upload-success-bg);
-  color: var(--field-upload-success-text);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 13px;
-}
-
-.field-upload-url-box {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.field-upload-url-box label {
-  font-size: 14px;
-  font-weight: 700;
-  color: #344054;
-}
-
-.field-upload-url-box textarea {
-  width: 100%;
-  min-height: 90px;
-  resize: vertical;
-  border: 1px solid #d0d5dd;
-  border-radius: 14px;
-  padding: 14px;
-  font-size: 13px;
-  font-family: inherit;
-  color: var(--field-upload-text);
-  background: #ffffff;
-  outline: none;
-  line-height: 1.6;
-}
-
-.field-upload-url-box textarea:focus {
-  border-color: var(--field-upload-green);
-}
-
-.field-upload-link {
-  width: fit-content;
-  color: var(--field-upload-green);
-  font-size: 14px;
-  font-weight: 700;
-  text-decoration: none;
-}
-
-.field-upload-link:hover {
-  text-decoration: underline;
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 /* =========================================================
    Responsive
    ========================================================= */
+
 @media (max-width: 768px) {
-  .field-upload-card {
-    border-radius: 18px;
+  .field-files-page {
+    @apply px-3 py-4;
   }
 
-  .field-upload-header,
-  .field-upload-body {
-    padding: 18px;
+  .field-files-header,
+  .field-files-body,
+  .field-files-table-head {
+    @apply px-4;
   }
 
-  .field-upload-header h2 {
-    font-size: 22px;
+  .field-files-header,
+  .field-files-body,
+  .field-files-table-head {
+    @apply py-4;
   }
 
-  .field-upload-file-info {
-    flex-direction: column;
-    align-items: stretch;
+  .field-files-title {
+    @apply text-2xl;
   }
 
-  .field-upload-preview-wrapper {
-    width: 140px;
-    height: 140px;
+  .field-files-upload-actions {
+    @apply flex-col;
   }
 
-  .field-upload-actions {
-    flex-direction: column;
+  .field-files-select,
+  .field-files-primary-btn {
+    @apply w-full;
   }
 
-  .field-upload-btn {
-    width: 100%;
+  .field-files-toolbar {
+    @apply gap-4;
+  }
+
+  .field-files-tools {
+    @apply w-full;
+  }
+
+  .field-files-search {
+    @apply w-full;
+  }
+
+  .field-files-modal {
+    @apply max-w-full rounded-[26px] px-6 pb-6 pt-8;
+  }
+
+  .field-files-modal-close {
+    @apply right-5 top-5 h-10 w-10;
+  }
+
+  .field-files-modal-title {
+    @apply text-2xl;
+  }
+
+  .field-files-modal-actions {
+    @apply flex-col-reverse items-stretch;
+  }
+
+  .field-files-modal-cancel,
+  .field-files-modal-delete {
+    @apply w-full;
   }
 }

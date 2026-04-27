@@ -1,30 +1,34 @@
 import { BaseCommand } from '@adonisjs/core/ace'
-import bcrypt from 'bcryptjs'
-import User from '#models/users'
+import type { CommandOptions } from '@adonisjs/core/types/ace'
+import User from '#models/user'
 
 export default class SeedAdmin extends BaseCommand {
   public static commandName = 'seed:admin'
-  public static description = 'Create an admin user'
+  public static description = 'Create or update default admin user'
+
+  public static options: CommandOptions = {
+    startApp: true,
+  }
+
   public async run() {
-    const name = 'Admin'
+    const fullName = 'Admin'
     const email = 'admin@example.com'
-    const password = 'adminpassword'
+    const password = 'admin12345'
 
-    const existingAdmin = await User.findOne({ email, role: 'admin' })
-    if (existingAdmin) {
-      this.logger.info('Admin user already exists.')
-      return
-    }
+    const admin = await User.updateOrCreate(
+      { email },
+      {
+        fullName,
+        email,
+        password,
+        role: 'admin',
+        departemen: 'Super User',
+        isActive: true,
+      }
+    )
 
-    const hashedPassword = await bcrypt.hash(password, 10)
-
-    await User.create({
-      name,
-      email,
-      password: hashedPassword,
-      role: 'admin',
-    })
-
-    this.logger.info(`Admin berhasil dibuat.\nEmail: ${email}\nPassword: ${password}`)
+    this.logger.success(
+      `Admin siap digunakan.\nID: ${admin.id}\nEmail: ${email}\nPassword: ${password}`
+    )
   }
 }

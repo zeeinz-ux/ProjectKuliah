@@ -1,606 +1,822 @@
-:root {
-  --material-bg: #f4f7fb;
-  --material-card: #ffffff;
-  --material-line: #edf1f5;
-  --material-line-soft: #e9eef5;
-  --material-text: #0f172a;
-  --material-text-body: #334155;
-  --material-muted: #64748b;
-  --material-soft: #94a3b8;
-  --material-green: #16a34a;
-  --material-green-strong: #22c55e;
-  --material-green-soft: #ecfdf3;
-  --material-blue: #2563eb;
-  --material-blue-soft: #eef6ff;
-  --material-orange: #ea580c;
-  --material-orange-soft: #fff7ed;
-  --material-red: #dc2626;
-  --material-red-soft: #fef2f2;
-  --material-shadow-sm: 0 8px 24px rgba(15, 23, 42, 0.06);
-  --material-shadow-md: 0 24px 60px rgba(15, 23, 42, 0.18);
-  --material-radius-sm: 12px;
-  --material-radius-md: 16px;
-  --material-radius-lg: 24px;
+@reference "../index.css";
+
+/* ========================================
+   PAGE
+======================================== */
+.stok-page {
+  @apply min-h-screen w-full overflow-x-hidden bg-slate-50 text-slate-900;
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
 }
 
-/* =========================================================
-   Scope utama StokMaterial
-   ========================================================= */
-.material-stock-page *,
-.material-modal * {
-  box-sizing: border-box;
-}
-
-/* =========================================================
-   Root halaman
-   ========================================================= */
-.material-stock-page {
-  width: 100%;
-  min-height: 100%;
-  padding: clamp(16px, 2vw, 24px);
-  background: var(--material-bg);
-  font-family: "Inter", "Plus Jakarta Sans", Arial, sans-serif;
-  color: #1f2937;
-}
-
-/* =========================================================
-   Card global khusus halaman material
-   ========================================================= */
-.material-stock-page .card {
-  background: var(--material-card);
-  border-radius: var(--material-radius-md);
-  box-shadow: var(--material-shadow-sm);
-  border: 1px solid var(--material-line);
-}
-
-/* =========================================================
-   Header halaman
-   ========================================================= */
-.material-stock-page .material-stock-header {
-  padding: 24px 28px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
-}
-
-.material-stock-page .material-stock-eyebrow {
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--material-blue);
-  margin: 0 0 8px;
-}
-
-.material-stock-page .material-stock-header h1 {
-  font-size: clamp(24px, 3vw, 32px);
-  line-height: 1.2;
-  margin: 0 0 8px;
-  color: var(--material-text);
-}
-
-.material-stock-page .material-stock-subtitle {
+.stok-container {
+  @apply w-full max-w-none px-3 py-4 md:px-5 md:py-5 xl:px-6 xl:py-6;
   margin: 0;
-  color: var(--material-muted);
-  font-size: 15px;
-  line-height: 1.7;
-  max-width: 720px;
 }
 
-/* =========================================================
-   Buttons
-   ========================================================= */
-.material-stock-page .primary-btn,
-.material-stock-page .secondary-btn,
-.material-stock-page .table-btn,
-.material-modal .primary-btn,
-.material-modal .secondary-btn,
-.material-modal .material-modal__close {
-  border: none;
-  outline: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: inherit;
+/* ========================================
+   HEADER
+======================================== */
+.stok-header {
+  @apply mb-6 flex items-start justify-between gap-5;
 }
 
-.material-stock-page .primary-btn,
-.material-modal .primary-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 44px;
-  padding: 0 18px;
-  background: var(--material-green-strong);
-  color: #ffffff;
-  border-radius: var(--material-radius-sm);
-  font-size: 14px;
-  font-weight: 700;
-  white-space: nowrap;
+.stok-header h1 {
+  @apply m-0 text-2xl font-extrabold tracking-[-0.04em] text-slate-900 md:text-[34px];
 }
 
-.material-stock-page .primary-btn:hover,
-.material-modal .primary-btn:hover {
-  background: var(--material-green);
-  transform: translateY(-1px);
+.stok-header p {
+  @apply mt-1.5 text-sm leading-6 text-slate-500 md:text-[15px];
 }
 
-.material-stock-page .secondary-btn,
-.material-modal .secondary-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 44px;
-  padding: 0 18px;
-  background: #ffffff;
-  color: var(--material-text-body);
-  border-radius: var(--material-radius-sm);
-  font-size: 14px;
-  font-weight: 600;
-  border: 1px solid #dbe3ec;
+.stok-main-btn {
+  @apply inline-flex min-h-[42px] cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-xl border-0 bg-emerald-600 px-[18px] text-sm font-extrabold text-white shadow-[0_12px_24px_rgba(5,150,105,0.2)] transition hover:-translate-y-0.5 hover:bg-emerald-700 active:scale-[0.98];
 }
 
-.material-stock-page .secondary-btn:hover,
-.material-modal .secondary-btn:hover {
-  background: #f8fafc;
+/* ========================================
+   ERROR
+======================================== */
+.stok-error {
+  @apply mb-5 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-600;
 }
 
-/* =========================================================
-   Summary Grid
-   ========================================================= */
-.material-stock-page .summary-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 18px;
-  margin-bottom: 24px;
+/* ========================================
+   SUMMARY CARDS
+======================================== */
+.stok-summary-grid {
+  @apply mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4;
 }
 
-.material-stock-page .summary-card {
-  padding: 22px;
+.stok-stat-card {
+  @apply min-h-[150px] rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_12px_32px_rgba(15,23,42,0.05)] md:p-5;
 }
 
-.material-stock-page .summary-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 18px;
-  gap: 14px;
+.stok-stat-top {
+  @apply mb-3.5 flex items-center justify-between gap-3;
 }
 
-.material-stock-page .summary-label {
-  font-size: 14px;
-  color: var(--material-muted);
-  font-weight: 600;
+.stok-stat-top span {
+  @apply text-xs font-black uppercase tracking-[0.05em] text-slate-500;
 }
 
-.material-stock-page .summary-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--material-blue-soft);
-  font-size: 18px;
-  flex-shrink: 0;
+.stok-stat-icon {
+  @apply grid h-[38px] w-[38px] place-items-center rounded-xl;
 }
 
-.material-stock-page .warning-bg {
-  background: var(--material-orange-soft);
+.stok-stat-icon.is-blue {
+  @apply bg-blue-50 text-blue-600;
 }
 
-.material-stock-page .success-bg {
-  background: var(--material-green-soft);
+.stok-stat-icon.is-amber {
+  @apply bg-amber-50 text-amber-500;
 }
 
-.material-stock-page .danger-bg {
-  background: var(--material-red-soft);
+.stok-stat-icon.is-emerald {
+  @apply bg-emerald-50 text-emerald-600;
 }
 
-.material-stock-page .summary-card h2 {
-  font-size: clamp(24px, 3vw, 30px);
-  margin: 0 0 10px;
-  color: var(--material-text);
+.stok-stat-icon.is-red {
+  @apply bg-rose-50 text-rose-500;
 }
 
-.material-stock-page .summary-note {
-  font-size: 14px;
-  margin: 0;
-  font-weight: 600;
+.stok-stat-card h2 {
+  @apply m-0 mb-1.5 text-[28px] font-black leading-none tracking-[-0.05em] text-slate-900 md:text-[36px];
 }
 
-.material-stock-page .summary-note.positive {
-  color: var(--material-green);
+.stok-stat-card p {
+  @apply m-0 text-[13px] text-slate-400;
 }
 
-.material-stock-page .summary-note.negative {
-  color: var(--material-orange);
+.stok-stat-card p.is-warning {
+  @apply text-amber-500;
 }
 
-/* =========================================================
-   Filter Bar
-   ========================================================= */
-.material-stock-page .filter-bar {
-  padding: 18px 22px;
-  margin-bottom: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
+/* ========================================
+   MAIN CARD
+======================================== */
+.stok-card {
+  @apply w-full max-w-none overflow-visible rounded-2xl border border-slate-200 bg-white shadow-[0_12px_32px_rgba(15,23,42,0.05)];
 }
 
-.material-stock-page .filter-left {
-  display: flex;
-  gap: 14px;
-  flex: 1;
-  flex-wrap: wrap;
+/* ========================================
+   TABS
+======================================== */
+.stok-tabs-wrapper {
+  @apply overflow-x-auto border-b border-slate-200;
 }
 
-.material-stock-page .filter-right {
-  display: flex;
-  align-items: center;
+.stok-tabs {
+  @apply flex min-w-full w-max items-center px-1 pt-1;
 }
 
-.material-stock-page .search-input,
-.material-stock-page .filter-select,
-.material-modal .material-form input,
-.material-modal .material-form select {
-  height: 48px;
-  border: 1px solid #dbe3ec;
-  border-radius: 12px;
-  padding: 0 14px;
-  font-size: 14px;
-  color: #1e293b;
-  background: #ffffff;
-  transition: all 0.2s ease;
-  font-family: inherit;
+.stok-tab {
+  @apply relative cursor-pointer whitespace-nowrap border-0 bg-transparent px-4 py-3.5 text-sm font-extrabold text-slate-500 transition hover:text-slate-700;
 }
 
-.material-stock-page .search-input {
-  min-width: 260px;
-  flex: 1;
+.stok-tab.active {
+  @apply text-slate-900;
 }
 
-.material-stock-page .filter-select {
-  min-width: 180px;
+.stok-tab.active::after {
+  content: "";
+  @apply absolute bottom-0 left-0 right-0 h-0.5 bg-slate-900;
 }
 
-.material-stock-page .search-input:focus,
-.material-stock-page .filter-select:focus,
-.material-modal .material-form input:focus,
-.material-modal .material-form select:focus {
-  border-color: #86efac;
-  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.12);
-  outline: none;
+.stok-tab span {
+  @apply ml-1.5 rounded-full px-2 py-0.5 text-[11px] font-semibold text-slate-400;
 }
 
-.material-stock-page .result-count {
-  font-size: 14px;
-  color: var(--material-muted);
+.stok-tab.active span {
+  @apply bg-slate-100 text-slate-600;
 }
 
-/* =========================================================
-   Table
-   ========================================================= */
-.material-stock-page .table-card {
-  padding: 22px;
+/* ========================================
+   TOOLBAR
+======================================== */
+.stok-toolbar {
+  @apply flex items-center justify-between gap-4 border-b border-slate-100 p-4;
 }
 
-.material-stock-page .table-header {
-  margin-bottom: 18px;
+.stok-search {
+  @apply relative w-full max-w-[360px];
 }
 
-.material-stock-page .table-header h3 {
-  font-size: 24px;
-  margin: 0 0 6px;
-  color: var(--material-text);
+.stok-search svg {
+  @apply pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400;
 }
 
-.material-stock-page .table-header p {
-  margin: 0;
-  color: var(--material-muted);
-  font-size: 14px;
+.stok-search input {
+  @apply h-[42px] w-full rounded-xl border border-slate-200 px-3.5 pl-10 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-4 focus:ring-slate-900/10;
 }
 
-.material-stock-page .table-wrapper {
-  overflow-x: auto;
+.stok-toolbar-actions {
+  @apply flex flex-wrap items-center justify-end gap-2;
 }
 
-.material-stock-page .material-table {
-  width: 100%;
-  border-collapse: collapse;
-  min-width: 980px;
+.stok-soft-btn {
+  @apply inline-flex h-[42px] cursor-pointer items-center gap-2 whitespace-nowrap rounded-xl border border-slate-200 bg-white px-3.5 text-sm font-extrabold text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900;
 }
 
-.material-stock-page .material-table thead th {
-  text-align: left;
-  padding: 14px 16px;
-  font-size: 13px;
-  color: var(--material-muted);
-  font-weight: 700;
-  border-bottom: 1px solid var(--material-line-soft);
-  background: #f8fafc;
+.stok-soft-btn.active {
+  @apply border-slate-300 bg-slate-50 text-slate-900;
 }
 
-.material-stock-page .material-table tbody td {
-  padding: 16px;
-  border-bottom: 1px solid #eef2f7;
-  font-size: 14px;
-  color: var(--material-text-body);
-  vertical-align: top;
+.stok-soft-btn .rotate {
+  @apply rotate-180;
 }
 
-.material-stock-page .material-table tbody tr:hover {
-  background: #fafcff;
+.stok-dropdown,
+.stok-columns-dropdown {
+  @apply relative;
 }
 
-.material-stock-page .material-name-cell {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.stok-dropdown-menu,
+.stok-columns-menu {
+  @apply absolute right-0 top-[calc(100%+8px)] z-50 rounded-[14px] border border-slate-200 bg-white shadow-[0_18px_40px_rgba(15,23,42,0.14)];
 }
 
-.material-stock-page .material-name-cell strong {
-  color: var(--material-text);
-  font-size: 14px;
+.stok-dropdown-menu {
+  @apply w-[180px] p-1.5;
 }
 
-/* =========================================================
-   Badge stok
-   ========================================================= */
-.material-stock-page .stock-badge {
-  width: fit-content;
-  padding: 6px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 700;
+.stok-dropdown-menu button {
+  @apply w-full cursor-pointer rounded-[10px] border-0 bg-transparent p-2.5 text-left text-sm text-slate-600 transition hover:bg-slate-50 hover:font-extrabold hover:text-slate-900;
 }
 
-.material-stock-page .stock-badge.safe {
-  background: var(--material-green-soft);
-  color: #15803d;
+.stok-dropdown-menu button.active {
+  @apply bg-slate-50 font-extrabold text-slate-900;
 }
 
-.material-stock-page .stock-badge.warning {
-  background: var(--material-orange-soft);
-  color: #c2410c;
+/* ========================================
+   COLUMNS DROPDOWN
+======================================== */
+.stok-columns-menu {
+  @apply w-[220px] p-3;
 }
 
-.material-stock-page .stock-badge.critical {
-  background: var(--material-red-soft);
-  color: var(--material-red);
+.stok-column-option {
+  @apply flex cursor-pointer items-center gap-3 rounded-[10px] px-2 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50;
 }
 
-/* =========================================================
-   Aksi tabel
-   ========================================================= */
-.material-stock-page .action-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+.stok-column-option input {
+  @apply h-4 w-4 cursor-pointer accent-emerald-600;
 }
 
-.material-stock-page .table-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 36px;
-  padding: 8px 12px;
-  border-radius: 10px;
-  font-size: 13px;
-  font-weight: 600;
+.stok-column-option span {
+  @apply leading-none;
 }
 
-.material-stock-page .edit-btn {
-  background: #eff6ff;
-  color: var(--material-blue);
+.stok-result-count {
+  @apply whitespace-nowrap text-xs text-slate-400;
 }
 
-.material-stock-page .edit-btn:hover {
-  background: #dbeafe;
+/* ========================================
+   TABLE
+======================================== */
+.stok-table-wrapper {
+  @apply w-full overflow-x-auto;
+  -webkit-overflow-scrolling: touch;
 }
 
-.material-stock-page .delete-btn {
-  background: var(--material-red-soft);
-  color: var(--material-red);
+.stok-table {
+  @apply w-full min-w-[920px] border-collapse text-sm;
 }
 
-.material-stock-page .delete-btn:hover {
-  background: #fee2e2;
+.stok-table thead tr {
+  @apply border-b border-slate-100 bg-slate-50/90;
 }
 
-.material-stock-page .stock-in-btn {
-  background: var(--material-green-soft);
-  color: var(--material-green);
+.stok-table th {
+  @apply whitespace-nowrap px-4 py-[15px] text-left text-xs font-black uppercase tracking-[0.06em] text-slate-500;
 }
 
-.material-stock-page .stock-in-btn:hover {
-  background: #dcfce7;
+.stok-table td {
+  @apply border-b border-slate-50 px-4 py-4 align-middle text-slate-900;
 }
 
-.material-stock-page .stock-out-btn {
-  background: var(--material-orange-soft);
-  color: var(--material-orange);
+.stok-table tbody tr {
+  @apply transition hover:bg-slate-50/70;
 }
 
-.material-stock-page .stock-out-btn:hover {
-  background: #ffedd5;
+.stok-table tbody tr.is-selected {
+  @apply bg-blue-50/70;
 }
 
-.material-stock-page .empty-state {
-  text-align: center;
-  padding: 28px 10px;
-  color: var(--material-muted);
-  font-size: 14px;
+.stok-checkbox-col {
+  @apply w-11;
 }
 
-/* =========================================================
-   Modal
-   ========================================================= */
-.material-modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.45);
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  z-index: 999999;
+.stok-checkbox-col input {
+  @apply h-4 w-4 cursor-pointer accent-slate-900;
 }
 
-.material-modal {
-  width: min(620px, calc(100% - 32px));
-  max-height: calc(100dvh - 40px);
+.stok-action-col {
+  @apply w-14 text-right;
+}
+
+.stok-material-cell {
+  @apply flex items-center gap-3;
+}
+
+.stok-material-icon {
+  @apply grid h-[42px] w-[42px] shrink-0 place-items-center rounded-xl border border-slate-200 bg-slate-100 text-slate-400;
+}
+
+.stok-material-cell strong {
+  @apply block font-black leading-snug text-slate-800;
+}
+
+.stok-material-cell span {
+  @apply mt-0.5 block text-xs text-slate-400;
+}
+
+.stok-category-badge {
+  @apply inline-flex min-h-7 items-center rounded-[9px] border border-slate-200 bg-slate-50 px-3 text-xs font-extrabold text-slate-600;
+}
+
+.stok-status-badge {
+  @apply inline-flex min-h-[30px] items-center gap-2 rounded-full border border-transparent px-3 text-xs font-black;
+}
+
+.stok-status-badge i {
+  @apply h-1.5 w-1.5 rounded-full;
+}
+
+.stok-status-badge.is-ready {
+  @apply border-green-200 bg-emerald-50 text-emerald-700;
+}
+
+.stok-status-badge i.is-ready {
+  @apply bg-green-500;
+}
+
+.stok-status-badge.is-low {
+  @apply border-amber-200 bg-amber-50 text-amber-700;
+}
+
+.stok-status-badge i.is-low {
+  @apply bg-amber-500;
+}
+
+.stok-status-badge.is-empty {
+  @apply border-rose-200 bg-rose-50 text-rose-600;
+}
+
+.stok-status-badge i.is-empty {
+  @apply bg-rose-500;
+}
+
+.stok-stock-value {
+  @apply font-black text-slate-900;
+}
+
+.stok-stock-unit {
+  @apply ml-1 text-xs text-slate-400;
+}
+
+.stok-price {
+  @apply whitespace-nowrap font-extrabold text-slate-700;
+  font-variant-numeric: tabular-nums;
+}
+
+.stok-date {
+  @apply whitespace-nowrap text-xs text-slate-500;
+  font-variant-numeric: tabular-nums;
+}
+
+.stok-action-wrap {
+  @apply relative flex justify-end;
+}
+
+.stok-menu-btn {
+  @apply grid h-[34px] w-[34px] cursor-pointer place-items-center rounded-[10px] border-0 bg-transparent text-slate-400 transition hover:bg-slate-100 hover:text-slate-600;
+}
+
+.stok-action-menu {
+  @apply absolute right-0 top-[calc(100%+4px)] z-40 w-[180px] rounded-[14px] border border-slate-200 bg-white p-1.5 shadow-[0_18px_40px_rgba(15,23,42,0.16)];
+}
+
+.stok-action-menu-floating {
+  @apply fixed z-[100000];
+  right: auto;
+  top: auto;
+  max-height: min(238px, calc(100vh - 24px));
   overflow-y: auto;
-  background: #ffffff;
-  border-radius: var(--material-radius-lg);
-  box-shadow: var(--material-shadow-md);
-  animation: materialModalFade 0.2s ease;
 }
 
-@keyframes materialModalFade {
+.stok-action-menu button {
+  @apply flex w-full cursor-pointer items-center gap-2 rounded-[10px] border-0 bg-transparent p-2.5 text-left text-sm text-slate-600 transition hover:bg-slate-50;
+}
+
+.stok-action-menu button.success {
+  @apply text-emerald-700 hover:bg-emerald-50;
+}
+
+.stok-action-menu button.warning {
+  @apply text-amber-700 hover:bg-amber-50;
+}
+
+.stok-action-menu button.danger {
+  @apply text-rose-500 hover:bg-rose-50;
+}
+
+.stok-action-menu hr {
+  @apply my-1 h-px border-0 bg-slate-100;
+}
+
+/* ========================================
+   LOADING & EMPTY
+======================================== */
+.stok-loading,
+.stok-empty {
+  @apply flex flex-col items-center gap-2 px-4 py-14 text-center text-slate-400;
+}
+
+.stok-loading p,
+.stok-empty p {
+  @apply m-0 text-sm font-extrabold text-slate-500;
+}
+
+.stok-empty span {
+  @apply text-xs text-slate-400;
+}
+
+.stok-spinner {
+  @apply h-[34px] w-[34px] rounded-full border-4 border-slate-200 border-t-emerald-600;
+  animation: stokSpin 0.75s linear infinite;
+}
+
+@keyframes stokSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ========================================
+   TABLE FOOTER / PAGINATION
+======================================== */
+.stok-table-footer {
+  @apply flex items-center justify-between gap-4 border-t border-slate-100 bg-white px-5 py-[18px];
+}
+
+.stok-footer-left {
+  @apply flex items-center gap-3;
+}
+
+.stok-footer-left span {
+  @apply text-sm text-slate-500;
+}
+
+.stok-footer-left button {
+  @apply cursor-pointer border-0 bg-transparent text-xs font-black text-rose-500 hover:text-rose-700;
+}
+
+.stok-pagination {
+  @apply flex flex-wrap items-center justify-end gap-2;
+}
+
+.stok-pagination span {
+  @apply text-sm text-slate-500;
+}
+
+.stok-pagination select,
+.stok-pagination button {
+  @apply h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm font-extrabold text-slate-700 outline-none transition;
+}
+
+.stok-pagination select {
+  @apply cursor-pointer;
+}
+
+.stok-pagination button {
+  @apply cursor-pointer;
+}
+
+.stok-pagination button:hover:not(:disabled),
+.stok-pagination select:focus {
+  @apply border-slate-300 bg-slate-50;
+}
+
+.stok-pagination button.active {
+  @apply border-emerald-600 bg-emerald-600 text-white;
+}
+
+.stok-pagination button:disabled {
+  @apply cursor-not-allowed text-slate-400 opacity-60;
+}
+
+/* ========================================
+   MODAL UMUM
+======================================== */
+.stok-modal-overlay {
+  @apply fixed inset-0 z-[99999] flex items-center justify-center bg-slate-900/40 p-5 backdrop-blur-md;
+  animation: stokOverlayIn 0.18s ease;
+}
+
+.stok-modal,
+.stok-detail-modal,
+.stok-movement-modal {
+  @apply w-full overflow-hidden rounded-[18px] bg-white shadow-[0_28px_90px_rgba(15,23,42,0.28)];
+  animation: stokModalIn 0.18s ease;
+}
+
+.stok-modal {
+  @apply max-w-[560px];
+}
+
+.stok-detail-modal,
+.stok-movement-modal {
+  @apply max-w-[460px];
+}
+
+@keyframes stokOverlayIn {
   from {
     opacity: 0;
-    transform: translateY(8px) scale(0.98);
   }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes stokModalIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
 }
 
-.material-modal .material-modal__header {
-  padding: 22px 24px 16px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  border-bottom: 1px solid #eef2f7;
+.stok-modal-header {
+  @apply flex items-start justify-between gap-4 border-b border-slate-100 px-6 pb-[18px] pt-[22px];
 }
 
-.material-modal .material-modal__header h3 {
-  margin: 0 0 6px;
-  font-size: 22px;
-  color: var(--material-text);
+.stok-modal-header h3 {
+  @apply m-0 text-[17px] font-black text-slate-900;
 }
 
-.material-modal .material-modal__header p {
-  margin: 0;
-  color: var(--material-muted);
-  font-size: 14px;
-  line-height: 1.6;
+.stok-modal-header p {
+  @apply mt-1 text-[13px] text-slate-500;
 }
 
-.material-modal .material-modal__close {
-  background: #f8fafc;
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
-  font-size: 20px;
-  color: #475569;
-  flex-shrink: 0;
+.stok-modal-close {
+  @apply grid h-9 w-9 cursor-pointer place-items-center rounded-[10px] border-0 bg-transparent text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-60;
 }
 
-.material-modal .material-modal__close:hover {
-  background: #e2e8f0;
+/* ========================================
+   FORM
+======================================== */
+.stok-form {
+  @apply px-6 pb-6 pt-5;
 }
 
-.material-modal .material-form {
-  padding: 22px 24px 24px;
+.stok-form-grid {
+  @apply grid grid-cols-2 gap-4;
 }
 
-.material-modal .form-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
+.stok-form-group.full {
+  @apply col-span-full;
 }
 
-.material-modal .form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.stok-form-group label {
+  @apply mb-2 block text-xs font-black text-slate-600;
 }
 
-.material-modal .form-group label {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--material-text-body);
+.stok-form-group input,
+.stok-form-group select,
+.stok-form-group textarea {
+  @apply w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-4 focus:ring-slate-900/10;
 }
 
-.material-modal .full-width {
-  grid-column: 1 / -1;
+.stok-form-group input,
+.stok-form-group select {
+  @apply h-11;
 }
 
-.material-modal .material-modal__actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  margin-top: 22px;
+.stok-form-group textarea {
+  @apply min-h-[88px] resize-y p-3;
+  font-family: inherit;
 }
 
-/* =========================================================
-   Responsive
-   ========================================================= */
-@media (max-width: 1200px) {
-  .material-stock-page .summary-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+.stok-money-input {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+
+.stok-sku-input {
+  @apply cursor-not-allowed bg-slate-50 font-black tracking-[0.04em] text-slate-600;
+  font-variant-numeric: tabular-nums;
+}
+
+.stok-form-hint {
+  @apply mt-2 block text-[11px] font-bold leading-snug text-slate-400;
+}
+
+.stok-modal-actions {
+  @apply mt-[18px] flex justify-end gap-2.5 border-t border-slate-100 pt-4;
+}
+
+.stok-cancel-btn,
+.stok-save-btn,
+.stok-dark-btn,
+.stok-out-btn {
+  @apply min-h-[42px] cursor-pointer rounded-xl border-0 px-4 text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-65;
+}
+
+.stok-cancel-btn {
+  @apply bg-slate-100 text-slate-600 hover:bg-slate-200;
+}
+
+.stok-save-btn {
+  @apply bg-emerald-600 text-white shadow-[0_12px_24px_rgba(5,150,105,0.18)] hover:-translate-y-0.5 hover:bg-emerald-700;
+}
+
+.stok-out-btn {
+  @apply bg-rose-500 text-white hover:bg-rose-600;
+}
+
+.stok-dark-btn {
+  @apply bg-slate-900 text-white hover:bg-slate-800;
+}
+
+/* ========================================
+   MOVEMENT MODAL
+======================================== */
+.stok-movement-info {
+  @apply mb-4 flex items-center justify-between gap-4 rounded-[14px] border border-slate-200 bg-slate-50 px-4 py-3.5;
+}
+
+.stok-movement-info span {
+  @apply text-[13px] font-bold text-slate-500;
+}
+
+.stok-movement-info strong {
+  @apply text-[15px] font-black text-slate-900;
+}
+
+.stok-modal-inline-error {
+  @apply mb-4 rounded-2xl border border-rose-200 bg-rose-50 px-3.5 py-3 text-[13px] font-extrabold leading-normal text-rose-600;
+}
+
+/* ========================================
+   DETAIL MODAL
+======================================== */
+.stok-detail-body {
+  @apply px-6 py-5;
+}
+
+.stok-detail-product {
+  @apply mb-4 flex items-center gap-3 border-b border-slate-100 pb-4;
+}
+
+.stok-detail-icon {
+  @apply grid h-12 w-12 place-items-center rounded-[14px] border border-slate-200 bg-slate-100 text-slate-400;
+}
+
+.stok-detail-product strong {
+  @apply block font-black text-slate-900;
+}
+
+.stok-detail-product span {
+  @apply mt-1 block text-xs text-slate-400;
+}
+
+.stok-detail-row {
+  @apply flex items-start justify-between gap-[18px] py-2 text-sm;
+}
+
+.stok-detail-row span {
+  @apply shrink-0 text-slate-500;
+}
+
+.stok-detail-row strong {
+  @apply max-w-[58%] text-right font-extrabold text-slate-900;
+}
+
+.stok-detail-actions {
+  @apply flex justify-end gap-2.5 border-t border-slate-100 px-6 py-4;
+}
+
+/* ========================================
+   DELETE CONFIRM MODAL
+======================================== */
+.stok-delete-modal-overlay {
+  @apply fixed inset-0 z-[1000000] flex items-center justify-center bg-slate-900/40 p-5 backdrop-blur-[9px];
+  animation: stokOverlayIn 0.18s ease;
+}
+
+.stok-delete-modal {
+  @apply relative w-[min(440px,calc(100vw-32px))] rounded-[28px] bg-white px-[26px] pb-[26px] pt-[30px] text-left shadow-[0_30px_90px_rgba(15,23,42,0.28)];
+  animation: stokModalIn 0.18s ease;
+}
+
+.stok-delete-modal-close {
+  @apply absolute right-6 top-6 inline-flex h-[42px] w-[42px] cursor-pointer items-center justify-center rounded-full border-0 bg-slate-100 text-slate-500 transition hover:bg-slate-200 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-65;
+}
+
+.stok-delete-modal h3 {
+  @apply m-0 max-w-[calc(100%-58px)] text-[25px] font-black leading-tight tracking-[-0.04em] text-slate-900;
+}
+
+.stok-delete-modal p {
+  @apply mt-3.5 text-sm font-medium leading-7 text-slate-500;
+}
+
+.stok-delete-modal p strong {
+  @apply font-black text-slate-900;
+}
+
+.stok-delete-modal-error {
+  @apply mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-3.5 py-3 text-[13px] font-extrabold leading-normal text-rose-600;
+}
+
+.stok-delete-modal-actions {
+  @apply mt-7 flex items-center justify-end gap-3;
+}
+
+.stok-delete-cancel-btn,
+.stok-delete-danger-btn {
+  @apply min-h-[50px] min-w-[92px] cursor-pointer rounded-[17px] px-[22px] text-[15px] font-black transition disabled:cursor-not-allowed disabled:opacity-65 disabled:hover:translate-y-0;
+}
+
+.stok-delete-cancel-btn {
+  @apply border border-slate-200 bg-white text-slate-900 hover:border-slate-300 hover:bg-slate-50;
+}
+
+.stok-delete-danger-btn {
+  @apply border-0 bg-[#ef0012] text-white hover:-translate-y-0.5 hover:bg-[#dc0010];
+}
+
+/* ========================================
+   RESPONSIVE
+======================================== */
+@media (max-width: 1100px) {
+  .stok-toolbar {
+    @apply items-stretch flex-col;
+  }
+
+  .stok-search {
+    @apply w-full max-w-full;
+  }
+
+  .stok-toolbar-actions {
+    @apply w-full justify-start;
   }
 }
 
 @media (max-width: 768px) {
-  .material-stock-page {
-    padding: 16px;
+  .stok-header {
+    @apply flex-col;
   }
 
-  .material-stock-page .material-stock-header {
-    flex-direction: column;
-    align-items: stretch;
-    padding: 20px;
+  .stok-main-btn {
+    @apply w-full;
   }
 
-  .material-stock-page .summary-grid {
-    grid-template-columns: 1fr;
+  .stok-table-footer {
+    @apply items-stretch flex-col;
   }
 
-  .material-stock-page .filter-bar {
-    padding: 16px;
+  .stok-footer-left {
+    @apply items-start flex-col;
   }
 
-  .material-stock-page .filter-left {
-    flex-direction: column;
-    width: 100%;
+  .stok-pagination {
+    @apply justify-start;
   }
 
-  .material-stock-page .search-input,
-  .material-stock-page .filter-select {
-    width: 100%;
+  .stok-form-grid {
+    @apply grid-cols-1;
   }
 
-  .material-stock-page .table-card {
-    padding: 16px;
+  .stok-form-group.full {
+    @apply col-auto;
   }
 
-  .material-modal {
-    width: min(100%, calc(100% - 24px));
-    max-height: calc(100dvh - 24px);
-    border-radius: 20px;
+  .stok-modal-actions,
+  .stok-detail-actions {
+    @apply flex-col-reverse;
   }
 
-  .material-modal .form-grid {
-    grid-template-columns: 1fr;
+  .stok-cancel-btn,
+  .stok-save-btn,
+  .stok-dark-btn,
+  .stok-out-btn {
+    @apply w-full;
   }
 
-  .material-modal .material-modal__actions {
-    flex-direction: column-reverse;
+  .stok-modal-overlay {
+    @apply items-end p-3;
   }
 
-  .material-modal .material-modal__actions .primary-btn,
-  .material-modal .material-modal__actions .secondary-btn {
-    width: 100%;
+  .stok-modal,
+  .stok-detail-modal,
+  .stok-movement-modal {
+    @apply max-h-[92vh] max-w-full overflow-y-auto rounded-[18px];
+  }
+
+  .stok-delete-modal {
+    @apply w-full rounded-3xl px-[22px] pb-[22px] pt-[30px];
+  }
+
+  .stok-delete-modal-close {
+    @apply right-5 top-5 h-10 w-10;
+  }
+
+  .stok-delete-modal h3 {
+    @apply text-[23px];
+  }
+
+  .stok-delete-modal-actions {
+    @apply flex-col-reverse items-stretch;
+  }
+
+  .stok-delete-cancel-btn,
+  .stok-delete-danger-btn {
+    @apply w-full;
+  }
+}
+
+@media (max-width: 480px) {
+  .stok-toolbar-actions {
+    @apply items-stretch flex-col;
+  }
+
+  .stok-soft-btn,
+  .stok-dropdown,
+  .stok-columns-dropdown {
+    @apply w-full;
+  }
+
+  .stok-soft-btn {
+    @apply justify-center;
+  }
+
+  .stok-dropdown-menu,
+  .stok-columns-menu {
+    @apply left-0 right-auto w-full;
+  }
+
+  .stok-pagination {
+    @apply w-full;
+  }
+
+  .stok-pagination button,
+  .stok-pagination select {
+    @apply flex-1;
+  }
+
+  .stok-material-cell {
+    @apply items-start;
   }
 }

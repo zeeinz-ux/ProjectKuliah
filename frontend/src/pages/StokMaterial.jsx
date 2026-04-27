@@ -1,440 +1,1426 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import {
+  FiAlertTriangle,
+  FiArrowDownCircle,
+  FiArrowUpCircle,
+  FiBox,
+  FiChevronDown,
+  FiColumns,
+  FiDownload,
+  FiEdit2,
+  FiEye,
+  FiMoreHorizontal,
+  FiPackage,
+  FiPlus,
+  FiSearch,
+  FiTag,
+  FiTrash2,
+  FiX,
+} from "react-icons/fi";
 import "../css/StokMaterial.css";
 
-const initialMaterials = [
-  {
-    id: 1,
-    name: "Cat Dulux Weathershield",
-    category: "Finishing",
-    sku: "MAT-001",
-    stock: 24,
-    unit: "pcs",
-  },
-  {
-    id: 2,
-    name: "HPL Taco Oak Brown",
-    category: "Panel",
-    sku: "MAT-002",
-    stock: 8,
-    unit: "lembar",
-  },
-  {
-    id: 3,
-    name: "Semen Tiga Roda",
-    category: "Struktur",
-    sku: "MAT-003",
-    stock: 40,
-    unit: "sak",
-  },
-  {
-    id: 4,
-    name: "Keramik Roman 60x60",
-    category: "Flooring",
-    sku: "MAT-004",
-    stock: 12,
-    unit: "box",
-  },
-  {
-    id: 5,
-    name: "Lampu Downlight LED",
-    category: "Electrical",
-    sku: "MAT-005",
-    stock: 5,
-    unit: "pcs",
-  },
-  {
-    id: 6,
-    name: "Multiplek 18mm",
-    category: "Panel",
-    sku: "MAT-006",
-    stock: 17,
-    unit: "lembar",
-  },
-];
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL ||
+  import.meta.env.VITE_API_BASE_URL ||
+  "http://localhost:3333";
+
+const MATERIAL_API_URL = `${API_BASE_URL}/api/materials`;
 
 const emptyForm = {
   name: "",
+  description: "",
   category: "",
   sku: "",
   stock: "",
   unit: "pcs",
+  price: "",
 };
 
-function StokMaterial() {
-  const [materials, setMaterials] = useState(initialMaterials);
+const emptyMovementForm = {
+  quantity: "",
+  note: "",
+};
+
+const DEFAULT_CATEGORIES = [
+  "Finishing",
+  "Panel",
+  "Struktur",
+  "Flooring",
+  "Electrical",
+];
+
+const TAB_KEYS = [
+  { key: "all", label: "All" },
+  { key: "tersedia", label: "Ready Stock" },
+  { key: "menipis", label: "Low Stock" },
+  { key: "habis", label: "Out of Stock" },
+];
+
+const COLUMN_OPTIONS = [
+  { key: "category", label: "Category" },
+  { key: "status", label: "Status" },
+  { key: "stock", label: "Stock" },
+  { key: "price", label: "Price" },
+  { key: "updated", label: "Updated" },
+];
+
+const STATUS_CONFIG = {
+  tersedia: {
+    label: "Ready Stock",
+    badgeClass: "is-ready",
+    dotClass: "is-ready",
+  },
+  menipis: {
+    label: "Low Stock",
+    badgeClass: "is-low",
+    dotClass: "is-low",
+  },
+  habis: {
+    label: "Out of Stock",
+    badgeClass: "is-empty",
+    dotClass: "is-empty",
+  },
+};
+
+function getAuthHeaders() {
+  const token =
+    localStorage.getItem("token") ||
+    localStorage.getItem("auth_token") ||
+    localStorage.getItem("accessToken") ||
+    localStorage.getItem("authToken");
+
+  return {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+}
+
+function normalizeMaterial(item) {
+  return {
+    id: item.id,
+    name: item.name || "",
+    description: item.description || "",
+    category: item.category || "",
+    sku: item.sku || "",
+    stock: Number(item.stock || 0),
+    unit: item.unit || "pcs",
+    price: Number(item.price || 0),
+
+    stockIn: Number(
+      item.stockIn ||
+        item.stock_in ||
+        item.qtyIn ||
+        item.qty_in ||
+        item.totalIn ||
+        item.total_in ||
+        item.barangMasuk ||
+        0,
+    ),
+
+    stockOut: Number(
+      item.stockOut ||
+        item.stock_out ||
+        item.qtyOut ||
+        item.qty_out ||
+        item.totalOut ||
+        item.total_out ||
+        item.barangKeluar ||
+        0,
+    ),
+
+    lastUpdated:
+      item.lastUpdated ||
+      item.last_updated ||
+      item.updatedAt ||
+      item.updated_at ||
+      item.createdAt ||
+      item.created_at ||
+      "",
+  };
+}
+
+function formatDate(value) {
+  if (!value) return "-";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return "-";
+
+  return date.toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+function formatIDR(value) {
+  if (!value && value !== 0) return "-";
+
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    minimumFractionDigits: 0,
+  }).format(Number(value));
+}
+
+function formatNumberInput(value) {
+  const digitsOnly = String(value || "").replace(/\D/g, "");
+
+  if (!digitsOnly) return "";
+
+  return new Intl.NumberFormat("id-ID").format(Number(digitsOnly));
+}
+
+function stockStatus(stock) {
+  const value = Number(stock || 0);
+
+  if (value === 0) return "habis";
+  if (value <= 5) return "menipis";
+
+  return "tersedia";
+}
+
+function getNextMaterialSku(materialList = []) {
+  const usedNumbers = new Set(
+    materialList
+      .map((item) => {
+        const match = String(item?.sku || "")
+          .trim()
+          .match(/^MAT-(\d+)$/i);
+
+        return match ? Number(match[1]) : null;
+      })
+      .filter((number) => Number.isInteger(number) && number > 0),
+  );
+
+  let nextNumber = 1;
+
+  while (usedNumbers.has(nextNumber)) {
+    nextNumber += 1;
+  }
+
+  return `MAT-${String(nextNumber).padStart(3, "0")}`;
+}
+
+export default function StokMaterial() {
+  const [materials, setMaterials] = useState([]);
+
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("Semua");
+  const [activeTab, setActiveTab] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+
   const [isOpen, setIsOpen] = useState(false);
   const [modalMode, setModalMode] = useState("add");
   const [selectedId, setSelectedId] = useState(null);
   const [formData, setFormData] = useState(emptyForm);
 
-  const categories = useMemo(() => {
-    const uniqueCategories = [
-      ...new Set(materials.map((item) => item.category)),
-    ];
-    return ["Semua", ...uniqueCategories];
-  }, [materials]);
+  const [movementItem, setMovementItem] = useState(null);
+  const [movementMode, setMovementMode] = useState(null);
+  const [movementForm, setMovementForm] = useState(emptyMovementForm);
+  const [movementSaving, setMovementSaving] = useState(false);
+  const [movementError, setMovementError] = useState("");
 
-  const filteredMaterials = useMemo(() => {
-    return materials.filter((item) => {
-      const matchSearch =
-        item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.sku.toLowerCase().includes(searchTerm.toLowerCase());
+  const [selected, setSelected] = useState([]);
+  const [detailItem, setDetailItem] = useState(null);
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const [menuPosition, setMenuPosition] = useState({
+    top: 0,
+    left: 0,
+  });
 
-      const matchCategory =
-        selectedCategory === "Semua" || item.category === selectedCategory;
+  const [catDropOpen, setCatDropOpen] = useState(false);
+  const [columnsOpen, setColumnsOpen] = useState(false);
 
-      return matchSearch && matchCategory;
-    });
-  }, [materials, searchTerm, selectedCategory]);
+  const [visibleColumns, setVisibleColumns] = useState({
+    category: true,
+    status: true,
+    stock: true,
+    price: true,
+    updated: true,
+  });
 
-  const summary = useMemo(() => {
-    const totalBarang = materials.length;
-    const stokMenipis = materials.filter((item) => item.stock <= 10).length;
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
 
-    return {
-      totalBarang,
-      stokMenipis,
-      barangMasuk: 38,
-      barangKeluar: 21,
-    };
-  }, [materials]);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const [deleteConfirm, setDeleteConfirm] = useState({
+    open: false,
+    mode: "single",
+    item: null,
+    ids: [],
+  });
+
+  const [deleteSaving, setDeleteSaving] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+
+  const catRef = useRef(null);
+  const columnsRef = useRef(null);
+  const menuButtonRefs = useRef({});
+
+  const fetchMaterials = async () => {
+    try {
+      setLoading(true);
+      setErrorMsg("");
+
+      const response = await fetch(MATERIAL_API_URL, {
+        method: "GET",
+        headers: getAuthHeaders(),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || "Gagal mengambil data material.");
+      }
+
+      const data = Array.isArray(result)
+        ? result
+        : result.data || result.materials || [];
+
+      setMaterials(data.map(normalizeMaterial));
+    } catch (error) {
+      setErrorMsg(
+        error.message || "Terjadi kesalahan saat mengambil data material.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
+    fetchMaterials();
+  }, []);
+
+  useEffect(() => {
+    const handler = (event) => {
+      if (catRef.current && !catRef.current.contains(event.target)) {
+        setCatDropOpen(false);
+      }
+
+      if (columnsRef.current && !columnsRef.current.contains(event.target)) {
+        setColumnsOpen(false);
+      }
+
+      setOpenMenuId(null);
+    };
+
+    document.addEventListener("mousedown", handler);
+
+    return () => {
+      document.removeEventListener("mousedown", handler);
+    };
+  }, []);
+
+  useEffect(() => {
+    const isAnyModalOpen =
+      isOpen || detailItem || movementItem || deleteConfirm.open;
+
+    document.body.style.overflow = isAnyModalOpen ? "hidden" : "";
 
     return () => {
       document.body.style.overflow = "";
     };
-  }, [isOpen]);
+  }, [isOpen, detailItem, movementItem, deleteConfirm.open]);
 
-  const handleOpenAddModal = () => {
+  useEffect(() => {
+    const handleEscape = (event) => {
+      if (event.key !== "Escape") return;
+
+      if (deleteConfirm.open && !deleteSaving) {
+        closeDeleteConfirm();
+        return;
+      }
+
+      if (movementItem && !movementSaving) {
+        closeMovementModal();
+        return;
+      }
+
+      if (detailItem) {
+        setDetailItem(null);
+        return;
+      }
+
+      if (isOpen && !saving) {
+        closeModal();
+      }
+    };
+
+    window.addEventListener("keydown", handleEscape);
+
+    return () => {
+      window.removeEventListener("keydown", handleEscape);
+    };
+  }, [
+    deleteConfirm.open,
+    deleteSaving,
+    movementItem,
+    movementSaving,
+    detailItem,
+    isOpen,
+    saving,
+  ]);
+
+  const categories = useMemo(() => {
+    const databaseCategories = materials
+      .map((item) => item.category)
+      .filter(Boolean);
+
+    return [...new Set([...DEFAULT_CATEGORIES, ...databaseCategories])];
+  }, [materials]);
+
+  const summary = useMemo(
+    () => ({
+      totalBarang: materials.length,
+      stokMenipis: materials.filter((material) => {
+        const status = stockStatus(material.stock);
+        return status === "menipis" || status === "habis";
+      }).length,
+      barangMasuk: materials.reduce(
+        (total, item) => total + Number(item.stockIn || 0),
+        0,
+      ),
+      barangKeluar: materials.reduce(
+        (total, item) => total + Number(item.stockOut || 0),
+        0,
+      ),
+    }),
+    [materials],
+  );
+
+  const filtered = useMemo(() => {
+    return materials.filter((item) => {
+      const status = stockStatus(item.stock);
+      const keyword = searchTerm.toLowerCase();
+
+      const matchSearch =
+        item.name.toLowerCase().includes(keyword) ||
+        item.sku.toLowerCase().includes(keyword) ||
+        item.description.toLowerCase().includes(keyword);
+
+      const matchTab = activeTab === "all" || status === activeTab;
+
+      const matchCategory =
+        categoryFilter === "all" || item.category === categoryFilter;
+
+      return matchSearch && matchTab && matchCategory;
+    });
+  }, [materials, searchTerm, activeTab, categoryFilter]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+    setSelected([]);
+  }, [searchTerm, activeTab, categoryFilter, rowsPerPage]);
+
+  const totalResults = filtered.length;
+  const totalPages = Math.max(1, Math.ceil(totalResults / rowsPerPage));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+
+  const startIndex =
+    totalResults === 0 ? 0 : (safeCurrentPage - 1) * rowsPerPage;
+
+  const endIndex = Math.min(startIndex + rowsPerPage, totalResults);
+  const paginatedMaterials = filtered.slice(startIndex, endIndex);
+
+  const visibleStart = totalResults === 0 ? 0 : startIndex + 1;
+  const visibleEnd = endIndex;
+
+  const isCurrentPageSelected =
+    paginatedMaterials.length > 0 &&
+    paginatedMaterials.every((item) => selected.includes(item.id));
+
+  const visibleColumnCount =
+    Object.values(visibleColumns).filter(Boolean).length;
+
+  const tableColumnCount = 3 + visibleColumnCount;
+
+  const tabCounts = useMemo(
+    () => ({
+      all: materials.length,
+      tersedia: materials.filter(
+        (material) => stockStatus(material.stock) === "tersedia",
+      ).length,
+      menipis: materials.filter(
+        (material) => stockStatus(material.stock) === "menipis",
+      ).length,
+      habis: materials.filter(
+        (material) => stockStatus(material.stock) === "habis",
+      ).length,
+    }),
+    [materials],
+  );
+
+  const handleToggleColumn = (key) => {
+    setVisibleColumns((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
+
+  const handleExport = () => {
+    const headers = [
+      "Nama Material",
+      "SKU",
+      "Deskripsi",
+      "Kategori",
+      "Status",
+      "Stok",
+      "Satuan",
+      "Harga",
+      "Barang Masuk",
+      "Barang Keluar",
+      "Update Terakhir",
+    ];
+
+    const rows = filtered.map((item) => [
+      item.name,
+      item.sku,
+      item.description,
+      item.category,
+      STATUS_CONFIG[stockStatus(item.stock)].label,
+      item.stock,
+      item.unit,
+      item.price,
+      item.stockIn,
+      item.stockOut,
+      formatDate(item.lastUpdated),
+    ]);
+
+    const csvContent = [headers, ...rows]
+      .map((row) =>
+        row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","),
+      )
+      .join("\n");
+
+    const blob = new Blob([csvContent], {
+      type: "text/csv;charset=utf-8;",
+    });
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.setAttribute("download", "stok-material.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    URL.revokeObjectURL(url);
+  };
+
+  const openAdd = () => {
     setModalMode("add");
     setSelectedId(null);
-    setFormData(emptyForm);
+    setFormData({
+      ...emptyForm,
+      sku: getNextMaterialSku(materials),
+    });
+    setErrorMsg("");
     setIsOpen(true);
   };
 
-  const handleOpenEditModal = (item) => {
+  const openEdit = (item) => {
     setModalMode("edit");
     setSelectedId(item.id);
     setFormData({
       name: item.name,
+      description: item.description || "",
       category: item.category,
       sku: item.sku,
-      stock: item.stock,
+      stock: String(item.stock),
       unit: item.unit,
+      price: String(item.price || ""),
     });
+    setErrorMsg("");
     setIsOpen(true);
+    setOpenMenuId(null);
   };
 
-  const handleCloseModal = () => {
+  const closeModal = () => {
+    if (saving) return;
+
     setIsOpen(false);
     setFormData(emptyForm);
     setSelectedId(null);
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+  const openMovementModal = (mode, item) => {
+    if (mode !== "in") return;
+
+    setMovementMode(mode);
+    setMovementItem(item);
+    setMovementForm(emptyMovementForm);
+    setMovementError("");
+    setErrorMsg("");
+    setOpenMenuId(null);
+  };
+
+  const closeMovementModal = () => {
+    if (movementSaving) return;
+
+    setMovementMode(null);
+    setMovementItem(null);
+    setMovementForm(emptyMovementForm);
+    setMovementError("");
+  };
+
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+
     setFormData((prev) => ({
       ...prev,
-      [name]: name === "stock" ? value.replace(/\D/g, "") : value,
+      [name]:
+        name === "stock" || name === "price" ? value.replace(/\D/g, "") : value,
     }));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleMovementChange = (event) => {
+    const { name, value } = event.target;
+
+    setMovementForm((prev) => ({
+      ...prev,
+      [name]: name === "quantity" ? value.replace(/\D/g, "") : value,
+    }));
+
+    if (name === "quantity") {
+      setMovementError("");
+    }
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    const safeSku =
+      modalMode === "add"
+        ? getNextMaterialSku(materials)
+        : formData.sku.trim() || getNextMaterialSku(materials);
 
     if (
       !formData.name.trim() ||
       !formData.category.trim() ||
-      !formData.sku.trim() ||
       formData.stock === "" ||
       !formData.unit.trim()
     ) {
-      alert("Semua field wajib diisi.");
+      setErrorMsg("Nama, kategori, stok, dan satuan wajib diisi.");
       return;
     }
 
-    if (modalMode === "add") {
-      const newItem = {
-        id: Date.now(),
-        name: formData.name.trim(),
-        category: formData.category.trim(),
-        sku: formData.sku.trim(),
-        stock: Number(formData.stock),
-        unit: formData.unit.trim(),
-      };
+    const payload = {
+      name: formData.name.trim(),
+      description: formData.description.trim(),
+      category: formData.category.trim(),
+      sku: safeSku,
+      stock: Number(formData.stock),
+      unit: formData.unit.trim(),
+      price: Number(formData.price) || 0,
+    };
 
-      setMaterials((prev) => [newItem, ...prev]);
-    } else {
-      setMaterials((prev) =>
-        prev.map((item) =>
-          item.id === selectedId
-            ? {
-                ...item,
-                name: formData.name.trim(),
-                category: formData.category.trim(),
-                sku: formData.sku.trim(),
-                stock: Number(formData.stock),
-                unit: formData.unit.trim(),
-              }
-            : item,
-        ),
+    try {
+      setSaving(true);
+      setErrorMsg("");
+
+      const response = await fetch(
+        modalMode === "add"
+          ? MATERIAL_API_URL
+          : `${MATERIAL_API_URL}/${selectedId}`,
+        {
+          method: modalMode === "add" ? "POST" : "PUT",
+          headers: getAuthHeaders(),
+          body: JSON.stringify(payload),
+        },
       );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || "Gagal menyimpan material.");
+      }
+
+      const savedMaterial = normalizeMaterial(
+        result.data || result.material || result,
+      );
+
+      if (modalMode === "add") {
+        setMaterials((prev) => [savedMaterial, ...prev]);
+      } else {
+        setMaterials((prev) =>
+          prev.map((item) => (item.id === selectedId ? savedMaterial : item)),
+        );
+
+        setDetailItem((prev) =>
+          prev && prev.id === selectedId ? savedMaterial : prev,
+        );
+      }
+
+      closeModal();
+    } catch (error) {
+      setErrorMsg(
+        error.message || "Terjadi kesalahan saat menyimpan material.",
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleStockMovementSubmit = async (event) => {
+    event.preventDefault();
+
+    if (!movementItem || movementMode !== "in") return;
+
+    const quantity = Number(movementForm.quantity || 0);
+
+    if (quantity <= 0) {
+      setMovementError("Jumlah barang masuk harus lebih dari 0.");
+      return;
     }
 
-    handleCloseModal();
+    const currentStock = Number(movementItem.stock || 0);
+    const currentStockIn = Number(movementItem.stockIn || 0);
+    const currentStockOut = Number(movementItem.stockOut || 0);
+
+    const nextStock = currentStock + quantity;
+    const nextStockIn = currentStockIn + quantity;
+    const nextStockOut = currentStockOut;
+
+    const payload = {
+      name: movementItem.name,
+      description: movementItem.description || "",
+      category: movementItem.category,
+      sku: movementItem.sku,
+      stock: nextStock,
+      unit: movementItem.unit,
+      price: Number(movementItem.price || 0),
+      stockIn: nextStockIn,
+      stockOut: nextStockOut,
+      stock_in: nextStockIn,
+      stock_out: nextStockOut,
+    };
+
+    try {
+      setMovementSaving(true);
+      setMovementError("");
+      setErrorMsg("");
+
+      const response = await fetch(`${MATERIAL_API_URL}/${movementItem.id}`, {
+        method: "PUT",
+        headers: getAuthHeaders(),
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(result.message || "Gagal menyimpan barang masuk.");
+      }
+
+      const updatedMaterial = normalizeMaterial(
+        result.data ||
+          result.material || {
+            ...movementItem,
+            stock: nextStock,
+            stockIn: nextStockIn,
+            stockOut: nextStockOut,
+            stock_in: nextStockIn,
+            stock_out: nextStockOut,
+            updatedAt: new Date().toISOString(),
+          },
+      );
+
+      setMaterials((prev) =>
+        prev.map((item) =>
+          item.id === movementItem.id ? updatedMaterial : item,
+        ),
+      );
+
+      setDetailItem((prev) =>
+        prev && prev.id === movementItem.id ? updatedMaterial : prev,
+      );
+
+      closeMovementModal();
+    } catch (error) {
+      setMovementError(
+        error.message || "Terjadi kesalahan saat menyimpan barang masuk.",
+      );
+    } finally {
+      setMovementSaving(false);
+    }
+  };
+
+  const openDeleteConfirm = (item) => {
+    if (!item) return;
+
+    setDeleteConfirm({
+      open: true,
+      mode: "single",
+      item,
+      ids: [item.id],
+    });
+
+    setDeleteError("");
+    setErrorMsg("");
+    setOpenMenuId(null);
+  };
+
+  const openBulkDeleteConfirm = () => {
+    if (!selected.length) return;
+
+    setDeleteConfirm({
+      open: true,
+      mode: "bulk",
+      item: null,
+      ids: [...selected],
+    });
+
+    setDeleteError("");
+    setErrorMsg("");
+    setOpenMenuId(null);
+  };
+
+  const closeDeleteConfirm = () => {
+    if (deleteSaving) return;
+
+    setDeleteConfirm({
+      open: false,
+      mode: "single",
+      item: null,
+      ids: [],
+    });
+
+    setDeleteError("");
   };
 
   const handleDelete = (id) => {
-    const confirmDelete = window.confirm("Yakin ingin menghapus barang ini?");
-    if (!confirmDelete) return;
-
-    setMaterials((prev) => prev.filter((item) => item.id !== id));
+    const target = materials.find((item) => item.id === id);
+    openDeleteConfirm(target);
   };
 
-  const handleStockChange = (id, amount) => {
-    setMaterials((prev) =>
-      prev.map((item) =>
-        item.id === id
-          ? {
-              ...item,
-              stock: Math.max(0, item.stock + amount),
-            }
-          : item,
-      ),
+  const handleBulkDelete = () => {
+    openBulkDeleteConfirm();
+  };
+
+  const handleConfirmDelete = async () => {
+    const idsToDelete =
+      deleteConfirm.mode === "single" && deleteConfirm.item
+        ? [deleteConfirm.item.id]
+        : deleteConfirm.ids;
+
+    if (!idsToDelete.length) return;
+
+    try {
+      setDeleteSaving(true);
+      setDeleteError("");
+      setErrorMsg("");
+
+      await Promise.all(
+        idsToDelete.map(async (id) => {
+          const response = await fetch(`${MATERIAL_API_URL}/${id}`, {
+            method: "DELETE",
+            headers: getAuthHeaders(),
+          });
+
+          const result = await response.json().catch(() => ({}));
+
+          if (!response.ok) {
+            throw new Error(result.message || "Gagal menghapus material.");
+          }
+        }),
+      );
+
+      setMaterials((prev) =>
+        prev.filter((material) => !idsToDelete.includes(material.id)),
+      );
+
+      setSelected((prev) =>
+        prev.filter((selectedId) => !idsToDelete.includes(selectedId)),
+      );
+
+      setOpenMenuId(null);
+
+      setDetailItem((prev) =>
+        prev && idsToDelete.includes(prev.id) ? null : prev,
+      );
+
+      setDeleteConfirm({
+        open: false,
+        mode: "single",
+        item: null,
+        ids: [],
+      });
+
+      setDeleteError("");
+    } catch (error) {
+      setDeleteError(
+        error.message || "Terjadi kesalahan saat menghapus material.",
+      );
+    } finally {
+      setDeleteSaving(false);
+    }
+  };
+
+  const toggleSelect = (id) => {
+    setSelected((prev) =>
+      prev.includes(id)
+        ? prev.filter((selectedId) => selectedId !== id)
+        : [...prev, id],
     );
   };
 
-  const getStockStatus = (stock) => {
-    if (stock <= 5) return "critical";
-    if (stock <= 10) return "warning";
-    return "safe";
+  const toggleAll = () => {
+    const currentPageIds = paginatedMaterials.map((item) => item.id);
+
+    if (isCurrentPageSelected) {
+      setSelected((prev) => prev.filter((id) => !currentPageIds.includes(id)));
+      return;
+    }
+
+    setSelected((prev) => [...new Set([...prev, ...currentPageIds])]);
   };
 
+  const activeMenuItem = useMemo(
+    () => materials.find((item) => item.id === openMenuId) || null,
+    [materials, openMenuId],
+  );
+
+  const updateActionMenuPosition = (itemId) => {
+    const button = menuButtonRefs.current[itemId];
+
+    if (!button) return;
+
+    const rect = button.getBoundingClientRect();
+
+    const menuWidth = 180;
+    const menuHeight = 238;
+    const padding = 12;
+    const gap = 8;
+
+    if (rect.bottom < 0 || rect.top > window.innerHeight) {
+      setOpenMenuId(null);
+      return;
+    }
+
+    const safeLeft = Math.min(
+      window.innerWidth - menuWidth - padding,
+      Math.max(padding, rect.right - menuWidth),
+    );
+
+    let safeTop = rect.bottom + gap;
+
+    if (safeTop + menuHeight > window.innerHeight - padding) {
+      safeTop = Math.max(padding, window.innerHeight - menuHeight - padding);
+    }
+
+    setMenuPosition({
+      top: safeTop,
+      left: safeLeft,
+    });
+  };
+
+  const toggleActionMenu = (event, itemId) => {
+    event.stopPropagation();
+
+    if (openMenuId === itemId) {
+      setOpenMenuId(null);
+      return;
+    }
+
+    updateActionMenuPosition(itemId);
+    setOpenMenuId(itemId);
+  };
+
+  useEffect(() => {
+    if (!openMenuId) return;
+
+    const handleRepositionMenu = () => {
+      updateActionMenuPosition(openMenuId);
+    };
+
+    window.addEventListener("scroll", handleRepositionMenu, true);
+    window.addEventListener("resize", handleRepositionMenu);
+
+    return () => {
+      window.removeEventListener("scroll", handleRepositionMenu, true);
+      window.removeEventListener("resize", handleRepositionMenu);
+    };
+  }, [openMenuId]);
+
   return (
-    <div className="material-stock-page">
-      <div className="material-stock-header card">
-        <div>
-          <p className="material-stock-eyebrow">Inventory Management</p>
-          <h1>Stok Material</h1>
-          <p className="material-stock-subtitle">
-            Kelola data material, stok masuk, dan stok keluar proyek interior.
-          </p>
-        </div>
-
-        <button
-          type="button"
-          className="primary-btn"
-          onClick={handleOpenAddModal}
-        >
-          + Tambah Barang
-        </button>
-      </div>
-
-      <div className="summary-grid">
-        <div className="summary-card card">
-          <div className="summary-top">
-            <span className="summary-label">Total Barang</span>
-            <span className="summary-icon">📦</span>
+    <div className="stok-page">
+      <div className="stok-container">
+        <div className="stok-header">
+          <div>
+            <h1>Stok Material</h1>
+            <p>
+              Kelola data material, stok masuk, dan stok keluar proyek interior.
+            </p>
           </div>
-          <h2>{summary.totalBarang}</h2>
-          <p className="summary-note positive">+ Data material terdaftar</p>
+
+          <button type="button" className="stok-main-btn" onClick={openAdd}>
+            <FiPlus size={16} />
+            Tambah Material
+          </button>
         </div>
 
-        <div className="summary-card card">
-          <div className="summary-top">
-            <span className="summary-label">Stok Menipis</span>
-            <span className="summary-icon warning-bg">⚠️</span>
-          </div>
-          <h2>{summary.stokMenipis}</h2>
-          <p className="summary-note negative">Perlu restock segera</p>
-        </div>
+        {errorMsg && <div className="stok-error">{errorMsg}</div>}
 
-        <div className="summary-card card">
-          <div className="summary-top">
-            <span className="summary-label">Barang Masuk</span>
-            <span className="summary-icon success-bg">⬇</span>
-          </div>
-          <h2>{summary.barangMasuk}</h2>
-          <p className="summary-note positive">Bulan ini</p>
-        </div>
-
-        <div className="summary-card card">
-          <div className="summary-top">
-            <span className="summary-label">Barang Keluar</span>
-            <span className="summary-icon danger-bg">⬆</span>
-          </div>
-          <h2>{summary.barangKeluar}</h2>
-          <p className="summary-note negative">Bulan ini</p>
-        </div>
-      </div>
-
-      <div className="filter-bar card">
-        <div className="filter-left">
-          <input
-            type="text"
-            placeholder="Cari nama barang atau SKU..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input"
+        <div className="stok-summary-grid">
+          <StatCard
+            icon={<FiBox size={18} />}
+            iconClass="is-blue"
+            label="Total Barang"
+            value={summary.totalBarang}
+            note="Material terdaftar"
           />
 
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="filter-select"
-          >
-            {categories.map((category, index) => (
-              <option key={index} value={category}>
-                {category}
-              </option>
-            ))}
-          </select>
+          <StatCard
+            icon={<FiAlertTriangle size={18} />}
+            iconClass="is-amber"
+            label="Stok Menipis"
+            value={summary.stokMenipis}
+            note="Perlu restock segera"
+            noteClass="is-warning"
+          />
+
+          <StatCard
+            icon={<FiArrowDownCircle size={18} />}
+            iconClass="is-emerald"
+            label="Barang Masuk"
+            value={summary.barangMasuk}
+            note="Total tercatat"
+          />
+
+          <StatCard
+            icon={<FiArrowUpCircle size={18} />}
+            iconClass="is-red"
+            label="Barang Keluar"
+            value={summary.barangKeluar}
+            note="Total tercatat"
+          />
         </div>
 
-        <div className="filter-right">
-          <span className="result-count">
-            Menampilkan <strong>{filteredMaterials.length}</strong> data
-          </span>
-        </div>
-      </div>
-
-      <div className="table-card card">
-        <div className="table-header">
-          <div>
-            <h3>Daftar Material</h3>
-            <p>Data stok material untuk kebutuhan proyek interior</p>
+        <div className="stok-card">
+          <div className="stok-tabs-wrapper">
+            <div className="stok-tabs">
+              {TAB_KEYS.map((tab) => (
+                <button
+                  key={tab.key}
+                  type="button"
+                  className={`stok-tab ${activeTab === tab.key ? "active" : ""}`}
+                  onClick={() => setActiveTab(tab.key)}
+                >
+                  {tab.label}
+                  <span>{tabCounts[tab.key]}</span>
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
 
-        <div className="table-wrapper">
-          <table className="material-table">
-            <thead>
-              <tr>
-                <th>No</th>
-                <th>Nama Barang</th>
-                <th>Kategori</th>
-                <th>SKU</th>
-                <th>Stok Saat Ini</th>
-                <th>Satuan</th>
-                <th>Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredMaterials.length > 0 ? (
-                filteredMaterials.map((item, index) => (
-                  <tr key={item.id}>
-                    <td>{index + 1}</td>
-                    <td>
-                      <div className="material-name-cell">
-                        <strong>{item.name}</strong>
-                        <span
-                          className={`stock-badge ${getStockStatus(item.stock)}`}
-                        >
-                          {item.stock <= 5
-                            ? "Kritis"
-                            : item.stock <= 10
-                              ? "Menipis"
-                              : "Aman"}
-                        </span>
-                      </div>
-                    </td>
-                    <td>{item.category}</td>
-                    <td>{item.sku}</td>
-                    <td>{item.stock}</td>
-                    <td>{item.unit}</td>
-                    <td>
-                      <div className="action-group">
-                        <button
-                          type="button"
-                          className="table-btn edit-btn"
-                          onClick={() => handleOpenEditModal(item)}
-                        >
-                          Edit
-                        </button>
+          <div className="stok-toolbar">
+            <div className="stok-search">
+              <FiSearch size={14} />
+              <input
+                type="text"
+                placeholder="Search materials..."
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+              />
+            </div>
 
-                        <button
-                          type="button"
-                          className="table-btn delete-btn"
-                          onClick={() => handleDelete(item.id)}
-                        >
-                          Hapus
-                        </button>
+            <div className="stok-toolbar-actions">
+              <div className="stok-columns-dropdown" ref={columnsRef}>
+                <button
+                  type="button"
+                  className={`stok-soft-btn ${columnsOpen ? "active" : ""}`}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setColumnsOpen((prev) => !prev);
+                  }}
+                >
+                  <FiColumns size={13} />
+                  Columns
+                </button>
 
-                        <button
-                          type="button"
-                          className="table-btn stock-in-btn"
-                          onClick={() => handleStockChange(item.id, 1)}
-                        >
-                          + Masuk
-                        </button>
+                {columnsOpen && (
+                  <div
+                    className="stok-columns-menu"
+                    onMouseDown={(event) => event.stopPropagation()}
+                  >
+                    {COLUMN_OPTIONS.map((column) => (
+                      <label key={column.key} className="stok-column-option">
+                        <input
+                          type="checkbox"
+                          checked={visibleColumns[column.key]}
+                          onChange={() => handleToggleColumn(column.key)}
+                        />
+                        <span>{column.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
 
-                        <button
-                          type="button"
-                          className="table-btn stock-out-btn"
-                          onClick={() => handleStockChange(item.id, -1)}
-                        >
-                          - Keluar
-                        </button>
+              <button
+                type="button"
+                className="stok-soft-btn"
+                onClick={handleExport}
+              >
+                <FiDownload size={13} />
+                Export
+              </button>
+
+              <div className="stok-dropdown" ref={catRef}>
+                <button
+                  type="button"
+                  className={`stok-soft-btn ${catDropOpen ? "active" : ""}`}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setCatDropOpen((prev) => !prev);
+                  }}
+                >
+                  <FiTag size={13} />
+                  {categoryFilter === "all" ? "Kategori" : categoryFilter}
+                  <FiChevronDown
+                    size={13}
+                    className={catDropOpen ? "rotate" : ""}
+                  />
+                </button>
+
+                {catDropOpen && (
+                  <div className="stok-dropdown-menu">
+                    <button
+                      type="button"
+                      className={categoryFilter === "all" ? "active" : ""}
+                      onClick={() => {
+                        setCategoryFilter("all");
+                        setCatDropOpen(false);
+                      }}
+                    >
+                      Semua Kategori
+                    </button>
+
+                    {categories.map((category) => (
+                      <button
+                        type="button"
+                        key={category}
+                        className={categoryFilter === category ? "active" : ""}
+                        onClick={() => {
+                          setCategoryFilter(category);
+                          setCatDropOpen(false);
+                        }}
+                      >
+                        {category}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <span className="stok-result-count">{filtered.length} hasil</span>
+            </div>
+          </div>
+
+          <div className="stok-table-wrapper">
+            <table className="stok-table">
+              <thead>
+                <tr>
+                  <th className="stok-checkbox-col">
+                    <input
+                      type="checkbox"
+                      checked={isCurrentPageSelected}
+                      onChange={toggleAll}
+                    />
+                  </th>
+
+                  <th>Material</th>
+
+                  {visibleColumns.category && <th>Category</th>}
+                  {visibleColumns.status && <th>Status</th>}
+                  {visibleColumns.stock && <th>Stock</th>}
+                  {visibleColumns.price && <th>Price</th>}
+                  {visibleColumns.updated && <th>Updated</th>}
+
+                  <th className="stok-action-col"></th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan={tableColumnCount}>
+                      <div className="stok-loading">
+                        <div className="stok-spinner" />
+                        <p>Mengambil data material...</p>
                       </div>
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="7">
-                    <div className="empty-state">
-                      Tidak ada data material yang sesuai dengan pencarian.
-                    </div>
-                  </td>
-                </tr>
+                ) : paginatedMaterials.length > 0 ? (
+                  paginatedMaterials.map((item) => {
+                    const status = stockStatus(item.stock);
+                    const statusCfg = STATUS_CONFIG[status];
+                    const isChecked = selected.includes(item.id);
+
+                    return (
+                      <tr
+                        key={item.id}
+                        className={isChecked ? "is-selected" : ""}
+                      >
+                        <td className="stok-checkbox-col">
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => toggleSelect(item.id)}
+                          />
+                        </td>
+
+                        <td>
+                          <div className="stok-material-cell">
+                            <div className="stok-material-icon">
+                              <FiPackage size={15} />
+                            </div>
+
+                            <div>
+                              <strong>{item.name}</strong>
+                              <span>
+                                {item.sku} · {item.description || "-"}
+                              </span>
+                            </div>
+                          </div>
+                        </td>
+
+                        {visibleColumns.category && (
+                          <td>
+                            <span className="stok-category-badge">
+                              {item.category || "-"}
+                            </span>
+                          </td>
+                        )}
+
+                        {visibleColumns.status && (
+                          <td>
+                            <span
+                              className={`stok-status-badge ${statusCfg.badgeClass}`}
+                            >
+                              <i className={statusCfg.dotClass} />
+                              {statusCfg.label}
+                            </span>
+                          </td>
+                        )}
+
+                        {visibleColumns.stock && (
+                          <td>
+                            <span className="stok-stock-value">
+                              {item.stock}
+                            </span>
+                            <span className="stok-stock-unit">{item.unit}</span>
+                          </td>
+                        )}
+
+                        {visibleColumns.price && (
+                          <td className="stok-price">
+                            {formatIDR(item.price)}
+                          </td>
+                        )}
+
+                        {visibleColumns.updated && (
+                          <td className="stok-date">
+                            {formatDate(item.lastUpdated)}
+                          </td>
+                        )}
+
+                        <td className="stok-action-col">
+                          <div className="stok-action-wrap">
+                            <button
+                              type="button"
+                              ref={(element) => {
+                                if (element) {
+                                  menuButtonRefs.current[item.id] = element;
+                                } else {
+                                  delete menuButtonRefs.current[item.id];
+                                }
+                              }}
+                              className="stok-menu-btn"
+                              onMouseDown={(event) => event.stopPropagation()}
+                              onClick={(event) =>
+                                toggleActionMenu(event, item.id)
+                              }
+                            >
+                              <FiMoreHorizontal size={16} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan={tableColumnCount}>
+                      <div className="stok-empty">
+                        <FiPackage size={32} />
+                        <p>Tidak ada material ditemukan</p>
+                        <span>Coba ubah filter atau kata kunci pencarian</span>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="stok-table-footer">
+            <div className="stok-footer-left">
+              <span>
+                Showing {visibleStart}-{visibleEnd} of {totalResults} results
+              </span>
+
+              {selected.length > 0 && (
+                <button type="button" onClick={handleBulkDelete}>
+                  Hapus {selected.length} item dipilih
+                </button>
               )}
-            </tbody>
-          </table>
+            </div>
+
+            <div className="stok-pagination">
+              <span>Rows</span>
+
+              <select
+                value={rowsPerPage}
+                onChange={(event) => {
+                  setRowsPerPage(Number(event.target.value));
+                  setCurrentPage(1);
+                }}
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={15}>15</option>
+                <option value={25}>25</option>
+              </select>
+
+              <button
+                type="button"
+                disabled={safeCurrentPage === 1}
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              >
+                Previous
+              </button>
+
+              {Array.from({ length: totalPages }, (_, index) => {
+                const page = index + 1;
+
+                return (
+                  <button
+                    key={page}
+                    type="button"
+                    className={safeCurrentPage === page ? "active" : ""}
+                    onClick={() => setCurrentPage(page)}
+                  >
+                    {page}
+                  </button>
+                );
+              })}
+
+              <button
+                type="button"
+                disabled={safeCurrentPage === totalPages}
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                }
+              >
+                Next
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
+      {activeMenuItem &&
+        createPortal(
+          <div
+            className="stok-action-menu stok-action-menu-floating"
+            style={{
+              top: `${menuPosition.top}px`,
+              left: `${menuPosition.left}px`,
+            }}
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => {
+                setDetailItem(activeMenuItem);
+                setOpenMenuId(null);
+              }}
+            >
+              <FiEye size={13} />
+              Detail
+            </button>
+
+            <button type="button" onClick={() => openEdit(activeMenuItem)}>
+              <FiEdit2 size={13} />
+              Edit
+            </button>
+
+            <hr />
+
+            <button
+              type="button"
+              className="success"
+              onClick={() => openMovementModal("in", activeMenuItem)}
+            >
+              <FiArrowDownCircle size={13} />
+              Barang Masuk
+            </button>
+
+            <hr />
+
+            <button
+              type="button"
+              className="danger"
+              onClick={() => handleDelete(activeMenuItem.id)}
+            >
+              <FiTrash2 size={13} />
+              Hapus
+            </button>
+          </div>,
+          document.body,
+        )}
+
       {isOpen &&
         createPortal(
-          <div className="material-modal-overlay" onClick={handleCloseModal}>
+          <div className="stok-modal-overlay" onClick={closeModal}>
             <div
-              className="material-modal"
-              onClick={(e) => e.stopPropagation()}
+              className="stok-modal"
+              onClick={(event) => event.stopPropagation()}
             >
-              <div className="material-modal__header">
+              <div className="stok-modal-header">
                 <div>
                   <h3>
-                    {modalMode === "add" ? "Tambah Barang Baru" : "Edit Barang"}
+                    {modalMode === "add"
+                      ? "Tambah Material Baru"
+                      : "Edit Material"}
                   </h3>
                   <p>
                     {modalMode === "add"
                       ? "Isi data material dengan lengkap."
-                      : "Perbarui data material yang sudah tersimpan."}
+                      : "Perbarui data material yang tersimpan."}
                   </p>
                 </div>
 
                 <button
-                  className="material-modal__close"
-                  onClick={handleCloseModal}
                   type="button"
-                  aria-label="Tutup modal"
+                  className="stok-modal-close"
+                  onClick={closeModal}
+                  disabled={saving}
                 >
-                  ×
+                  <FiX size={17} />
                 </button>
               </div>
 
-              <form className="material-form" onSubmit={handleSubmit}>
-                <div className="form-grid">
-                  <div className="form-group">
-                    <label>Nama Barang</label>
+              <form className="stok-form" onSubmit={handleSubmit}>
+                <div className="stok-form-grid">
+                  <FormGroup label="Nama Barang *" className="full">
                     <input
                       type="text"
                       name="name"
@@ -442,71 +1428,373 @@ function StokMaterial() {
                       onChange={handleChange}
                       placeholder="Contoh: Cat Dulux"
                     />
-                  </div>
+                  </FormGroup>
 
-                  <div className="form-group">
-                    <label>Kategori</label>
+                  <FormGroup label="Deskripsi" className="full">
                     <input
                       type="text"
+                      name="description"
+                      value={formData.description}
+                      onChange={handleChange}
+                      placeholder="Deskripsi singkat produk"
+                    />
+                  </FormGroup>
+
+                  <FormGroup label="Kategori *">
+                    <select
                       name="category"
                       value={formData.category}
                       onChange={handleChange}
-                      placeholder="Contoh: Finishing"
-                    />
-                  </div>
+                    >
+                      <option value="">Pilih kategori</option>
+                      {categories.map((category) => (
+                        <option key={category} value={category}>
+                          {category}
+                        </option>
+                      ))}
+                    </select>
+                  </FormGroup>
 
-                  <div className="form-group">
-                    <label>SKU</label>
+                  <FormGroup label="SKU Otomatis">
                     <input
                       type="text"
                       name="sku"
-                      value={formData.sku}
-                      onChange={handleChange}
-                      placeholder="Contoh: MAT-007"
+                      className="stok-sku-input"
+                      value={
+                        formData.sku ||
+                        (modalMode === "add"
+                          ? getNextMaterialSku(materials)
+                          : "")
+                      }
+                      placeholder="MAT-001"
+                      readOnly
+                      tabIndex={-1}
                     />
-                  </div>
+                    <small className="stok-form-hint">
+                      SKU dibuat otomatis berurutan dari MAT-001.
+                    </small>
+                  </FormGroup>
 
-                  <div className="form-group">
-                    <label>Stok Awal</label>
+                  <FormGroup label="Stok Awal *">
                     <input
                       type="text"
                       name="stock"
-                      value={formData.stock}
+                      value={formatNumberInput(formData.stock)}
                       onChange={handleChange}
-                      placeholder="Contoh: 20"
+                      placeholder="0"
+                      inputMode="numeric"
                     />
-                  </div>
+                  </FormGroup>
 
-                  <div className="form-group full-width">
-                    <label>Satuan</label>
+                  <FormGroup label="Satuan">
                     <select
                       name="unit"
                       value={formData.unit}
                       onChange={handleChange}
                     >
-                      <option value="pcs">pcs</option>
-                      <option value="m2">m2</option>
-                      <option value="lembar">lembar</option>
-                      <option value="box">box</option>
-                      <option value="sak">sak</option>
-                      <option value="roll">roll</option>
+                      {[
+                        "pcs",
+                        "m2",
+                        "lembar",
+                        "box",
+                        "sak",
+                        "roll",
+                        "batang",
+                      ].map((unit) => (
+                        <option key={unit} value={unit}>
+                          {unit}
+                        </option>
+                      ))}
                     </select>
-                  </div>
+                  </FormGroup>
+
+                  <FormGroup label="Harga Satuan (IDR)" className="full">
+                    <input
+                      type="text"
+                      name="price"
+                      className="stok-money-input"
+                      value={formatNumberInput(formData.price)}
+                      onChange={handleChange}
+                      placeholder="0"
+                      inputMode="numeric"
+                      autoComplete="off"
+                    />
+                  </FormGroup>
                 </div>
 
-                <div className="material-modal__actions">
+                <div className="stok-modal-actions">
                   <button
                     type="button"
-                    className="secondary-btn"
-                    onClick={handleCloseModal}
+                    className="stok-cancel-btn"
+                    onClick={closeModal}
+                    disabled={saving}
                   >
                     Batal
                   </button>
-                  <button type="submit" className="primary-btn">
-                    {modalMode === "add" ? "Simpan Barang" : "Update Barang"}
+
+                  <button
+                    type="submit"
+                    className="stok-save-btn"
+                    disabled={saving}
+                  >
+                    {saving
+                      ? "Menyimpan..."
+                      : modalMode === "add"
+                        ? "Simpan Material"
+                        : "Update Material"}
                   </button>
                 </div>
               </form>
+            </div>
+          </div>,
+          document.body,
+        )}
+
+      {movementItem &&
+        createPortal(
+          <div className="stok-modal-overlay" onClick={closeMovementModal}>
+            <div
+              className="stok-movement-modal"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="stok-modal-header">
+                <div>
+                  <h3>Barang Masuk</h3>
+                  <p>{movementItem.name}</p>
+                </div>
+
+                <button
+                  type="button"
+                  className="stok-modal-close"
+                  onClick={closeMovementModal}
+                  disabled={movementSaving}
+                >
+                  <FiX size={17} />
+                </button>
+              </div>
+
+              <form className="stok-form" onSubmit={handleStockMovementSubmit}>
+                <div className="stok-movement-info">
+                  <span>Stok saat ini</span>
+                  <strong>
+                    {movementItem.stock} {movementItem.unit}
+                  </strong>
+                </div>
+
+                {movementError && (
+                  <div className="stok-modal-inline-error">{movementError}</div>
+                )}
+
+                <FormGroup label="Jumlah Barang Masuk *" className="full">
+                  <input
+                    type="text"
+                    name="quantity"
+                    value={formatNumberInput(movementForm.quantity)}
+                    onChange={handleMovementChange}
+                    placeholder="0"
+                    inputMode="numeric"
+                    autoComplete="off"
+                  />
+                </FormGroup>
+
+                <FormGroup label="Catatan" className="full">
+                  <textarea
+                    name="note"
+                    value={movementForm.note}
+                    onChange={handleMovementChange}
+                    placeholder="Contoh: pembelian material / digunakan untuk proyek..."
+                    rows={3}
+                  />
+                </FormGroup>
+
+                <div className="stok-modal-actions">
+                  <button
+                    type="button"
+                    className="stok-cancel-btn"
+                    onClick={closeMovementModal}
+                    disabled={movementSaving}
+                  >
+                    Batal
+                  </button>
+
+                  <button
+                    type="submit"
+                    className="stok-save-btn"
+                    disabled={movementSaving}
+                  >
+                    {movementSaving ? "Menyimpan..." : "Simpan Barang Masuk"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>,
+          document.body,
+        )}
+
+      {detailItem &&
+        createPortal(
+          <div
+            className="stok-modal-overlay"
+            onClick={() => setDetailItem(null)}
+          >
+            <div
+              className="stok-detail-modal"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="stok-modal-header">
+                <div>
+                  <h3>Detail Material</h3>
+                  <p>Informasi lengkap material yang dipilih.</p>
+                </div>
+
+                <button
+                  type="button"
+                  className="stok-modal-close"
+                  onClick={() => setDetailItem(null)}
+                >
+                  <FiX size={17} />
+                </button>
+              </div>
+
+              <div className="stok-detail-body">
+                <div className="stok-detail-product">
+                  <div className="stok-detail-icon">
+                    <FiPackage size={20} />
+                  </div>
+
+                  <div>
+                    <strong>{detailItem.name}</strong>
+                    <span>{detailItem.sku}</span>
+                  </div>
+                </div>
+
+                <DetailRow
+                  label="Deskripsi"
+                  value={detailItem.description || "-"}
+                />
+                <DetailRow
+                  label="Kategori"
+                  value={detailItem.category || "-"}
+                />
+                <DetailRow
+                  label="Stok Saat Ini"
+                  value={`${detailItem.stock} ${detailItem.unit}`}
+                />
+                <DetailRow
+                  label="Barang Masuk"
+                  value={`${detailItem.stockIn || 0} ${detailItem.unit}`}
+                />
+                <DetailRow
+                  label="Barang Keluar"
+                  value={`${detailItem.stockOut || 0} ${detailItem.unit}`}
+                />
+                <DetailRow
+                  label="Status"
+                  value={STATUS_CONFIG[stockStatus(detailItem.stock)].label}
+                />
+                <DetailRow
+                  label="Harga Satuan"
+                  value={formatIDR(detailItem.price)}
+                />
+                <DetailRow
+                  label="Update Terakhir"
+                  value={formatDate(detailItem.lastUpdated)}
+                />
+              </div>
+
+              <div className="stok-detail-actions">
+                <button
+                  type="button"
+                  className="stok-cancel-btn"
+                  onClick={() => {
+                    openEdit(detailItem);
+                    setDetailItem(null);
+                  }}
+                >
+                  Edit Material
+                </button>
+
+                <button
+                  type="button"
+                  className="stok-dark-btn"
+                  onClick={() => setDetailItem(null)}
+                >
+                  Tutup
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )}
+
+      {deleteConfirm.open &&
+        createPortal(
+          <div
+            className="stok-delete-modal-overlay"
+            onClick={closeDeleteConfirm}
+            role="presentation"
+          >
+            <div
+              className="stok-delete-modal"
+              onClick={(event) => event.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="delete-material-title"
+            >
+              <button
+                type="button"
+                className="stok-delete-modal-close"
+                onClick={closeDeleteConfirm}
+                disabled={deleteSaving}
+                aria-label="Tutup modal"
+              >
+                <FiX size={21} />
+              </button>
+
+              <h3 id="delete-material-title">
+                {deleteConfirm.mode === "bulk"
+                  ? "Delete Materials"
+                  : "Delete Material"}
+              </h3>
+
+              <p>
+                {deleteConfirm.mode === "bulk" ? (
+                  <>
+                    Are you sure you want to delete{" "}
+                    <strong>{deleteConfirm.ids.length}</strong> selected
+                    materials?
+                  </>
+                ) : (
+                  <>
+                    Are you sure you want to delete material{" "}
+                    <strong>{deleteConfirm.item?.name}</strong>?
+                  </>
+                )}
+              </p>
+
+              {deleteError && (
+                <div className="stok-delete-modal-error">{deleteError}</div>
+              )}
+
+              <div className="stok-delete-modal-actions">
+                <button
+                  type="button"
+                  className="stok-delete-cancel-btn"
+                  onClick={closeDeleteConfirm}
+                  disabled={deleteSaving}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="button"
+                  className="stok-delete-danger-btn"
+                  onClick={handleConfirmDelete}
+                  disabled={deleteSaving}
+                >
+                  {deleteSaving ? "Deleting..." : "Delete"}
+                </button>
+              </div>
             </div>
           </div>,
           document.body,
@@ -515,4 +1803,35 @@ function StokMaterial() {
   );
 }
 
-export default StokMaterial;
+function StatCard({ icon, iconClass, label, value, note, noteClass = "" }) {
+  return (
+    <div className="stok-stat-card">
+      <div className="stok-stat-top">
+        <span>{label}</span>
+
+        <div className={`stok-stat-icon ${iconClass}`}>{icon}</div>
+      </div>
+
+      <h2>{value}</h2>
+      <p className={noteClass}>{note}</p>
+    </div>
+  );
+}
+
+function FormGroup({ label, className = "", children }) {
+  return (
+    <div className={`stok-form-group ${className}`}>
+      <label>{label}</label>
+      {children}
+    </div>
+  );
+}
+
+function DetailRow({ label, value }) {
+  return (
+    <div className="stok-detail-row">
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
+  );
+}

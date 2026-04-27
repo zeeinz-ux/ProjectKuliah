@@ -2,8 +2,8 @@ import { DateTime } from 'luxon'
 import hash from '@adonisjs/core/services/hash'
 import { BaseModel, beforeSave, column } from '@adonisjs/lucid/orm'
 
-export type UserRole = 'super_admin' | 'project_manager' | 'finance'
-export type UserDepartemen = 'IT/Sistem' | 'Pengawas' | 'Keuangan'
+export type UserRole = 'admin' | 'project_manager' | 'finance'
+export type UserDepartemen = 'Super User' | 'Operator Data' | 'Accounting'
 
 export default class User extends BaseModel {
   public static table = 'users'

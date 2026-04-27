@@ -4,10 +4,10 @@ import type { NextFn } from '@adonisjs/core/types/http'
 import jwt from 'jsonwebtoken'
 
 interface JwtPayload {
-  id: string
+  id: number
   email: string
-  name: string
-  role: 'admin' | 'relawan'
+  full_name?: string
+  role: 'admin' | 'project_manager' | 'finance'
   iat?: number
   exp?: number
 }
@@ -20,14 +20,11 @@ export default class OptionalAuthMiddleware {
       const token = authHeader.substring(7)
 
       try {
-        const decoded = jwt.verify(
-          token,
-          env.get('JWT_SECRET') || ''
-        ) as JwtPayload
+        const decoded = jwt.verify(token, env.get('JWT_SECRET')) as JwtPayload
 
         ;(request as any).user = decoded
       } catch (error) {
-        
+        // Optional auth: token invalid tidak memblokir request
       }
     }
 

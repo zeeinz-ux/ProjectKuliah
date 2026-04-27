@@ -11,15 +11,15 @@ const TABS = [
 ];
 
 const ROLE_OPTIONS = [
-  { value: "super_admin", label: "Super Admin" },
+  { value: "admin", label: "Admin" },
   { value: "project_manager", label: "Project Manager" },
   { value: "finance", label: "Finance" },
 ];
 
 const DEPARTEMEN_OPTIONS = [
-  { value: "IT/Sistem", label: "IT/Sistem" },
-  { value: "Pengawas", label: "Pengawas" },
-  { value: "Keuangan", label: "Keuangan" },
+  { value: "Super User", label: "Super User" },
+  { value: "Operator Data", label: "Operator Data" },
+  { value: "Accounting", label: "Accounting" },
 ];
 
 const formatDateTime = (value) => {
@@ -63,7 +63,7 @@ export default function UserManagement() {
   }
 
   const currentUser = parsedUser;
-  const isSuperAdmin = currentUser?.role === "super_admin";
+  const isSuperAdmin = currentUser?.role === "admin";
 
   const [users, setUsers] = useState([]);
   const [activeTab, setActiveTab] = useState("all");
@@ -94,6 +94,10 @@ export default function UserManagement() {
     departemen: "",
     is_active: true,
   });
+
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   const columnsMenuRef = useRef(null);
 
@@ -172,6 +176,12 @@ export default function UserManagement() {
       if (event.key === "Escape") {
         setShowColumnsMenu(false);
         setIsModalOpen(false);
+        setFormError("");
+
+        if (!deleteLoading) {
+          setDeleteTarget(null);
+          setDeleteError("");
+        }
       }
     };
 
@@ -182,10 +192,10 @@ export default function UserManagement() {
       document.removeEventListener("mousedown", handleClickOutside);
       window.removeEventListener("keydown", handleEscape);
     };
-  }, []);
+  }, [deleteLoading]);
 
   useEffect(() => {
-    if (isModalOpen) {
+    if (isModalOpen || deleteTarget) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
@@ -194,7 +204,7 @@ export default function UserManagement() {
     return () => {
       document.body.style.overflow = "";
     };
-  }, [isModalOpen]);
+  }, [isModalOpen, deleteTarget]);
 
   const filteredUsers = useMemo(() => {
     return users.filter((user) => {
@@ -274,8 +284,24 @@ export default function UserManagement() {
   };
 
   const closeModal = () => {
+    if (submitLoading) return;
+
     setIsModalOpen(false);
     setFormError("");
+  };
+
+  const openDeleteModal = (user) => {
+    if (!isSuperAdmin) return;
+
+    setDeleteTarget(user);
+    setDeleteError("");
+  };
+
+  const closeDeleteModal = () => {
+    if (deleteLoading) return;
+
+    setDeleteTarget(null);
+    setDeleteError("");
   };
 
   const handleFormChange = (e) => {
@@ -341,17 +367,14 @@ export default function UserManagement() {
     }
   };
 
-  const handleDeleteUser = async (user) => {
-    if (!isSuperAdmin) return;
-
-    const confirmed = window.confirm(
-      `Yakin ingin menghapus user "${user.full_name}"?`,
-    );
-
-    if (!confirmed) return;
+  const confirmDeleteUser = async () => {
+    if (!isSuperAdmin || !deleteTarget) return;
 
     try {
-      const response = await fetch(`${API_URL}/users/${user.id}`, {
+      setDeleteLoading(true);
+      setDeleteError("");
+
+      const response = await fetch(`${API_URL}/users/${deleteTarget.id}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -365,9 +388,12 @@ export default function UserManagement() {
         throw new Error(data.message || "Gagal menghapus user");
       }
 
+      setDeleteTarget(null);
       await fetchUsers();
     } catch (err) {
-      alert(err.message || "Terjadi kesalahan saat menghapus user");
+      setDeleteError(err.message || "Terjadi kesalahan saat menghapus user");
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -421,7 +447,7 @@ export default function UserManagement() {
 
   const getRoleClass = (role) => {
     switch (role) {
-      case "super_admin":
+      case "admin":
         return "user-role-badge user-role-badge--admin";
       case "project_manager":
         return "user-role-badge user-role-badge--editor";
@@ -483,7 +509,9 @@ export default function UserManagement() {
             <button
               key={tab.value}
               type="button"
-              className={`user-tab-btn ${activeTab === tab.value ? "active" : ""}`}
+              className={`user-tab-btn ${
+                activeTab === tab.value ? "active" : ""
+              }`}
               onClick={() => setActiveTab(tab.value)}
             >
               {tab.label}
@@ -646,7 +674,7 @@ export default function UserManagement() {
                           <button
                             type="button"
                             className="user-icon-btn user-icon-btn--delete"
-                            onClick={() => handleDeleteUser(user)}
+                            onClick={() => openDeleteModal(user)}
                             aria-label={`Hapus ${user.full_name}`}
                           >
                             🗑
@@ -701,7 +729,9 @@ export default function UserManagement() {
                 <button
                   key={page}
                   type="button"
-                  className={`user-page-number ${currentPage === page ? "active" : ""}`}
+                  className={`user-page-number ${
+                    currentPage === page ? "active" : ""
+                  }`}
                   onClick={() => setCurrentPage(page)}
                 >
                   {page}
@@ -884,6 +914,69 @@ export default function UserManagement() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>,
+          document.body,
+        )}
+
+      {isSuperAdmin &&
+        deleteTarget &&
+        createPortal(
+          <div
+            className="user-delete-modal-overlay"
+            onClick={closeDeleteModal}
+            role="presentation"
+          >
+            <div
+              className="user-delete-modal"
+              onClick={(e) => e.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="delete-user-title"
+            >
+              <button
+                type="button"
+                className="user-delete-modal__close"
+                onClick={closeDeleteModal}
+                disabled={deleteLoading}
+                aria-label="Tutup modal"
+              >
+                ×
+              </button>
+
+              <h3 id="delete-user-title">Delete User</h3>
+
+              <p>
+                Are you sure you want to delete user{" "}
+                <strong className="user-delete-modal__target">
+                  {deleteTarget.full_name}
+                </strong>
+                ?
+              </p>
+
+              {deleteError && (
+                <div className="user-delete-modal__error">{deleteError}</div>
+              )}
+
+              <div className="user-delete-modal__actions">
+                <button
+                  type="button"
+                  className="user-delete-modal__cancel"
+                  onClick={closeDeleteModal}
+                  disabled={deleteLoading}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="button"
+                  className="user-delete-modal__danger"
+                  onClick={confirmDeleteUser}
+                  disabled={deleteLoading}
+                >
+                  {deleteLoading ? "Deleting..." : "Delete"}
+                </button>
+              </div>
             </div>
           </div>,
           document.body,

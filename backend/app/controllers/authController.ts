@@ -3,13 +3,10 @@ import User from '#models/user'
 import hash from '@adonisjs/core/services/hash'
 import jwt from 'jsonwebtoken'
 import env from '#start/env'
-import { OAuth2Client } from 'google-auth-library'
 
-const googleClient = new OAuth2Client(env.get('GOOGLE_CLIENT_ID'))
+const ROLES = ['admin', 'project_manager', 'finance'] as const
 
-const ROLES = ['super_admin', 'project_manager', 'finance'] as const
-
-const DEPARTEMEN_LIST = ['IT/Sistem', 'Pengawas', 'Keuangan'] as const
+const DEPARTEMEN_LIST = ['Super User', 'Operator Data', 'Accounting'] as const
 
 type UserRole = (typeof ROLES)[number]
 type UserDepartemen = (typeof DEPARTEMEN_LIST)[number]
@@ -64,7 +61,6 @@ export default class AuthController {
         password,
         role,
         departemen,
-        googleId: null,
         isActive: true,
       })
 
@@ -76,7 +72,6 @@ export default class AuthController {
           email: user.email,
           role: user.role,
           departemen: user.departemen,
-          google_id: user.googleId,
           is_active: user.isActive,
         },
       })
@@ -158,7 +153,6 @@ export default class AuthController {
           email: user.email,
           role: user.role,
           departemen: user.departemen,
-          google_id: user.googleId,
           is_active: user.isActive,
         },
         redirectTo: '/admin',
@@ -168,100 +162,6 @@ export default class AuthController {
 
       return response.internalServerError({
         message: 'Terjadi kesalahan server saat login',
-      })
-    }
-  }
-
-  // POST /google-login
-  public async googleLogin({ request, response }: HttpContext) {
-    try {
-      const { idToken } = request.only(['idToken'])
-
-      if (!idToken) {
-        return response.badRequest({
-          message: 'ID Token wajib dikirim',
-        })
-      }
-
-      const ticket = await googleClient.verifyIdToken({
-        idToken,
-        audience: env.get('GOOGLE_CLIENT_ID'),
-      })
-
-      const payload = ticket.getPayload()
-
-      if (!payload) {
-        return response.unauthorized({
-          message: 'Google token tidak valid',
-        })
-      }
-
-      const googleId = payload.sub
-      const email = payload.email?.trim().toLowerCase()
-      const fullName = payload.name?.trim()
-
-      if (!email) {
-        return response.unauthorized({
-          message: 'Akun Google tidak memiliki email',
-        })
-      }
-
-      let user = await User.findBy('googleId', googleId)
-
-      if (!user) {
-        user = await User.findBy('email', email)
-
-        if (!user) {
-          return response.forbidden({
-            message: 'Akun Google ini belum terdaftar. Silakan daftar dulu atau hubungi admin.',
-          })
-        }
-
-        user.googleId = googleId
-
-        if (!user.fullName && fullName) {
-          user.fullName = fullName
-        }
-
-        await user.save()
-      }
-
-      if (!user.isActive) {
-        return response.forbidden({
-          message: 'Akun tidak aktif, silakan hubungi admin',
-        })
-      }
-
-      const token = jwt.sign(
-        {
-          id: user.id,
-          email: user.email,
-          full_name: user.fullName,
-          role: user.role,
-        },
-        env.get('JWT_SECRET'),
-        { expiresIn: '24h' }
-      )
-
-      return response.ok({
-        message: 'Login Google berhasil',
-        token,
-        user: {
-          id: user.id,
-          full_name: user.fullName,
-          email: user.email,
-          role: user.role,
-          departemen: user.departemen,
-          google_id: user.googleId,
-          is_active: user.isActive,
-        },
-        redirectTo: '/admin',
-      })
-    } catch (error) {
-      console.error('Google login error:', error)
-
-      return response.internalServerError({
-        message: 'Terjadi kesalahan server saat login Google',
       })
     }
   }

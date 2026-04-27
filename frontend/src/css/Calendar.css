@@ -1,0 +1,155 @@
+@reference "../index.css";
+
+@layer components {
+  .calendar-shell {
+    @apply w-full min-w-0;
+  }
+
+  .calendar-shell .fc {
+    @apply w-full text-slate-800;
+  }
+
+  .calendar-shell .fc .fc-toolbar {
+    @apply hidden;
+  }
+
+  .calendar-shell .fc-theme-standard td,
+  .calendar-shell .fc-theme-standard th {
+    @apply border-slate-200;
+  }
+
+  .calendar-shell .fc .fc-scrollgrid {
+    @apply w-full overflow-hidden rounded-[24px] border border-slate-200;
+  }
+
+  .calendar-shell .fc .fc-col-header-cell {
+    @apply bg-white py-3 text-sm font-semibold text-slate-500;
+  }
+
+  .calendar-shell .fc .fc-col-header-cell-cushion {
+    @apply py-3 font-semibold text-slate-500 no-underline;
+  }
+
+  .calendar-shell .fc .fc-daygrid-day-frame {
+    @apply min-h-[120px] p-2 transition md:min-h-[138px] xl:min-h-[150px];
+  }
+
+  .calendar-shell .fc .fc-daygrid-day-top {
+    @apply flex-row justify-start;
+  }
+
+  .calendar-shell .fc .fc-daygrid-day-number {
+    @apply rounded-xl px-2 py-1 text-sm font-semibold text-slate-900 no-underline;
+  }
+
+  .calendar-shell .fc .fc-daygrid-day.fc-day-today {
+    @apply bg-emerald-50/70;
+  }
+
+  .calendar-shell .fc .fc-daygrid-day.fc-day-today .fc-daygrid-day-number {
+    @apply bg-emerald-600 text-white;
+  }
+
+  .calendar-shell .fc .fc-day-other {
+    @apply bg-slate-50/70;
+  }
+
+  .calendar-shell .fc .fc-day-other .fc-daygrid-day-number {
+    @apply text-slate-400;
+  }
+
+  .calendar-shell .fc .fc-daygrid-day-events {
+    @apply mt-1;
+  }
+
+  .calendar-shell .fc .fc-daygrid-event-harness {
+    @apply mt-1;
+  }
+
+  .calendar-shell .fc .fc-daygrid-event {
+    @apply border-0 bg-transparent p-0 shadow-none;
+  }
+
+  .calendar-shell .fc .fc-daygrid-dot-event {
+    @apply border-0 bg-transparent p-0 shadow-none;
+  }
+
+  .calendar-shell .fc .fc-daygrid-more-link {
+    @apply mt-1 text-xs font-semibold text-slate-500 no-underline;
+  }
+
+  .calendar-shell .fc .fc-highlight {
+    @apply bg-emerald-100/70;
+  }
+
+  .calendar-shell .fc .fc-view-harness {
+    @apply w-full overflow-hidden rounded-[24px];
+  }
+
+  /* Tanggal merah dari backend holiday Indonesia */
+  .calendar-shell .fc .fc-daygrid-day.indo-holiday-cell {
+    background-color: #fff1f2 !important;
+  }
+
+  .calendar-shell .fc .fc-daygrid-day.indo-holiday-cell .fc-daygrid-day-frame {
+    background-color: rgba(220, 38, 38, 0.06) !important;
+    box-shadow: inset 0 0 0 1px rgba(220, 38, 38, 0.18);
+  }
+
+  .calendar-shell .fc .fc-daygrid-day.indo-holiday-cell .fc-daygrid-day-number {
+    color: #dc2626 !important;
+    font-weight: 900 !important;
+  }
+
+  .calendar-shell .fc .fc-daygrid-day.indo-holiday-cell.fc-day-today {
+    background-color: #ffe4e6 !important;
+  }
+
+  .calendar-shell
+    .fc
+    .fc-daygrid-day.indo-holiday-cell.fc-day-today
+    .fc-daygrid-day-number {
+    background-color: #dc2626 !important;
+    color: #ffffff !important;
+  }
+
+  .calendar-shell
+    .fc
+    .fc-daygrid-day.indo-holiday-cell.selected-calendar-day
+    .fc-daygrid-day-frame {
+    background-color: #ffe4e6 !important;
+    box-shadow: inset 0 0 0 2px #dc2626;
+  }
+
+  .selected-calendar-day .fc-daygrid-day-frame {
+    @apply bg-slate-900/5;
+    box-shadow: inset 0 0 0 2px #111827;
+  }
+
+  @media (max-width: 1024px) {
+    .calendar-shell .fc .fc-daygrid-day-frame {
+      @apply min-h-[110px];
+    }
+  }
+
+  @media (max-width: 768px) {
+    .calendar-shell .fc .fc-daygrid-day-frame {
+      @apply min-h-[92px] p-1.5;
+    }
+
+    .calendar-shell .fc .fc-col-header-cell-cushion,
+    .calendar-shell .fc .fc-daygrid-day-number {
+      @apply text-xs;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .calendar-shell .fc .fc-daygrid-day-frame {
+      @apply min-h-[76px] p-1;
+    }
+
+    .calendar-shell .fc .fc-daygrid-event {
+      @apply text-[10px];
+    }
+  }
+}

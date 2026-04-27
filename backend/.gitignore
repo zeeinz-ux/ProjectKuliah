@@ -23,14 +23,24 @@ pnpm-debug.log*
 
 # Cache / coverage
 coverage
+.nyc_output
 
 # Public compiled assets
 public/assets
 
+# Package manager caches
+.npm
+.pnpm-store
+.yarn
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+
 # Editor files
 .fleet
 .idea
-.vscode
+.vscode/*
 !.vscode/extensions.json
 
 # OS files

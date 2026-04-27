@@ -1,166 +1,132 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { useNavigate } from "react-router-dom";
+import { Search, Plus, X, Trash2, Pencil, Users, Loader2 } from "lucide-react";
 import "../css/ClientManagement.css";
 
-const initialClients = [
-  {
-    id: 1,
-    name: "Emma Wilson",
-    email: "emma@example.com",
-    status: "Active",
-    joined: "2026-01-05",
-    totalSpent: 18500000,
-    projects: [
-      { id: 101, name: "Interior Cafe A", status: "Completed" },
-      { id: 102, name: "Renovasi Rumah A", status: "On Progress" },
-    ],
-  },
-  {
-    id: 2,
-    name: "James Chen",
-    email: "james@company.io",
-    status: "Active",
-    joined: "2026-01-12",
-    totalSpent: 9200000,
-    projects: [
-      { id: 103, name: "Booth Pameran Brand X", status: "On Progress" },
-    ],
-  },
-  {
-    id: 3,
-    name: "Sofia Garcia",
-    email: "sofia@startup.co",
-    status: "Active",
-    joined: "2025-12-18",
-    totalSpent: 28500000,
-    projects: [
-      { id: 104, name: "Interior Office Startup", status: "Completed" },
-      { id: 105, name: "Lobby Kantor Minimalis", status: "Pending" },
-    ],
-  },
-  {
-    id: 4,
-    name: "Alex Thompson",
-    email: "alex@dev.com",
-    status: "Active",
-    joined: "2026-01-20",
-    totalSpent: 4600000,
-    projects: [{ id: 106, name: "Kitchen Set Modern", status: "Completed" }],
-  },
-  {
-    id: 5,
-    name: "Maria Santos",
-    email: "maria@agency.co",
-    status: "Active",
-    joined: "2025-12-02",
-    totalSpent: 12750000,
-    projects: [
-      { id: 107, name: "Renovasi Ruang Meeting", status: "On Progress" },
-    ],
-  },
-  {
-    id: 6,
-    name: "David Kim",
-    email: "david@tech.io",
-    status: "Inactive",
-    joined: "2025-11-15",
-    totalSpent: 0,
-    projects: [],
-  },
-  {
-    id: 7,
-    name: "Lisa Park",
-    email: "lisa@design.co",
-    status: "Active",
-    joined: "2026-01-08",
-    totalSpent: 9850000,
-    projects: [
-      { id: 108, name: "Interior Boutique Store", status: "Completed" },
-    ],
-  },
-  {
-    id: 8,
-    name: "Ryan Mitchell",
-    email: "ryan@startup.io",
-    status: "Active",
-    joined: "2025-12-28",
-    totalSpent: 25400000,
-    projects: [
-      { id: 109, name: "Showroom Furniture", status: "On Progress" },
-      { id: 110, name: "Display Produk Premium", status: "Pending" },
-    ],
-  },
-  {
-    id: 9,
-    name: "Nina Patel",
-    email: "nina@corp.com",
-    status: "Active",
-    joined: "2026-01-15",
-    totalSpent: 5100000,
-    projects: [{ id: 111, name: "Backdrop Resepsionis", status: "Completed" }],
-  },
-  {
-    id: 10,
-    name: "Tom Bradley",
-    email: "tom@agency.io",
-    status: "Active",
-    joined: "2026-01-22",
-    totalSpent: 9100000,
-    projects: [
-      { id: 112, name: "Workspace Creative Studio", status: "On Progress" },
-    ],
-  },
-  {
-    id: 11,
-    name: "Olivia Brown",
-    email: "olivia@studio.com",
-    status: "Inactive",
-    joined: "2025-10-12",
-    totalSpent: 3500000,
-    projects: [{ id: 113, name: "Mini Bar Apartment", status: "Completed" }],
-  },
-  {
-    id: 12,
-    name: "Daniel Lee",
-    email: "daniel@home.id",
-    status: "Active",
-    joined: "2026-02-02",
-    totalSpent: 15800000,
-    projects: [
-      { id: 114, name: "Renovasi Kamar Utama", status: "On Progress" },
-      { id: 115, name: "Wardrobe Custom", status: "Pending" },
-    ],
-  },
-];
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3333";
 
 const statusTabs = ["All", "Active", "Inactive"];
 
 const emptyFormData = {
   name: "",
   email: "",
+  phone: "",
+  address: "",
   status: "Active",
   joined: "",
-  totalSpent: "",
-  firstProjectName: "",
-  firstProjectStatus: "Pending",
 };
 
 function ClientManagement() {
-  const navigate = useNavigate();
+  // =========================
+  // State utama data client
+  // =========================
+  const [clients, setClients] = useState([]);
+  const [selectedClient, setSelectedClient] = useState(null);
+  const [editingClient, setEditingClient] = useState(null);
 
-  const [clients, setClients] = useState(initialClients);
+  // =========================
+  // State filter, search, pagination
+  // =========================
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("All");
-  const [selectedClient, setSelectedClient] = useState(null);
-
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  // =========================
+  // State modal add/edit
+  // =========================
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+  const [formMode, setFormMode] = useState("add");
   const [formData, setFormData] = useState(emptyFormData);
 
+  // =========================
+  // State modal delete custom
+  // =========================
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleteError, setDeleteError] = useState("");
+
+  // =========================
+  // State loading/error
+  // =========================
+  const [loading, setLoading] = useState(false);
+  const [submitLoading, setSubmitLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  // =========================
+  // Ambil token dari localStorage
+  // =========================
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem("token");
+
+    return {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    };
+  };
+
+  // =========================
+  // Normalisasi data dari backend
+  // Supaya aman kalau field backend snake_case
+  // =========================
+  const normalizeClient = (client) => {
+    return {
+      id: client.id,
+      name: client.name || "",
+      email: client.email || "",
+      phone: client.phone || "",
+      address: client.address || "",
+      status: client.status || "Active",
+      joined: client.joined || client.joined_at || client.createdAt || "",
+      totalSpent: Number(client.totalSpent || client.total_spent || 0),
+      projects: client.projects || [],
+      projectCount:
+        client.projectCount ||
+        client.project_count ||
+        client.projects?.length ||
+        client.orders ||
+        0,
+    };
+  };
+
+  // =========================
+  // GET data client dari backend
+  // =========================
+  const fetchClients = async () => {
+    try {
+      setLoading(true);
+      setErrorMsg("");
+
+      const response = await fetch(`${API_BASE_URL}/api/clients`, {
+        method: "GET",
+        headers: getAuthHeaders(),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || "Gagal mengambil data client.");
+      }
+
+      const data = Array.isArray(result) ? result : result.data || [];
+      setClients(data.map(normalizeClient));
+    } catch (error) {
+      setErrorMsg(error.message || "Terjadi kesalahan saat mengambil data.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchClients();
+  }, []);
+
+  // =========================
+  // Helpers tampilan
+  // =========================
   const getInitials = (name) => {
+    if (!name) return "-";
+
     return name
       .split(" ")
       .map((word) => word[0])
@@ -174,7 +140,7 @@ function ClientManagement() {
       style: "currency",
       currency: "IDR",
       maximumFractionDigits: 0,
-    }).format(value);
+    }).format(Number(value || 0));
   };
 
   const formatDate = (dateString) => {
@@ -190,22 +156,34 @@ function ClientManagement() {
     });
   };
 
-  const statusClass = (status) => status.toLowerCase().replace(/\s+/g, "-");
+  const statusClass = (status) => {
+    return String(status || "")
+      .toLowerCase()
+      .replace(/\s+/g, "-");
+  };
 
+  // =========================
+  // Filter data client
+  // =========================
   const filteredClients = useMemo(() => {
     return clients.filter((client) => {
       const matchesStatus =
         activeTab === "All" ? true : client.status === activeTab;
 
       const keyword = searchTerm.toLowerCase();
+
       const matchesSearch =
         client.name.toLowerCase().includes(keyword) ||
-        client.email.toLowerCase().includes(keyword);
+        client.email.toLowerCase().includes(keyword) ||
+        client.phone.toLowerCase().includes(keyword);
 
       return matchesStatus && matchesSearch;
     });
   }, [clients, activeTab, searchTerm]);
 
+  // =========================
+  // Pagination
+  // =========================
   const totalPages = Math.max(
     1,
     Math.ceil(filteredClients.length / rowsPerPage),
@@ -222,8 +200,16 @@ function ClientManagement() {
     return filteredClients.slice(startIndex, startIndex + rowsPerPage);
   }, [filteredClients, currentPage, rowsPerPage]);
 
+  const startItem =
+    filteredClients.length === 0 ? 0 : (currentPage - 1) * rowsPerPage + 1;
+
+  const endItem = Math.min(currentPage * rowsPerPage, filteredClients.length);
+
+  // =========================
+  // Kunci scroll body ketika modal/drawer terbuka
+  // =========================
   useEffect(() => {
-    if (selectedClient || isAddModalOpen) {
+    if (selectedClient || isFormModalOpen || deleteTarget) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
@@ -232,24 +218,34 @@ function ClientManagement() {
     return () => {
       document.body.style.overflow = "";
     };
-  }, [selectedClient, isAddModalOpen]);
+  }, [selectedClient, isFormModalOpen, deleteTarget]);
 
+  // =========================
+  // Tutup modal dengan ESC
+  // =========================
   useEffect(() => {
     const handleEscape = (event) => {
-      if (event.key === "Escape") {
-        if (selectedClient) {
-          setSelectedClient(null);
-        }
-        if (isAddModalOpen) {
-          setIsAddModalOpen(false);
-        }
+      if (event.key !== "Escape") return;
+
+      setSelectedClient(null);
+      setIsFormModalOpen(false);
+
+      if (!deleteLoading) {
+        setDeleteTarget(null);
+        setDeleteError("");
       }
     };
 
     window.addEventListener("keydown", handleEscape);
-    return () => window.removeEventListener("keydown", handleEscape);
-  }, [selectedClient, isAddModalOpen]);
 
+    return () => {
+      window.removeEventListener("keydown", handleEscape);
+    };
+  }, [deleteLoading]);
+
+  // =========================
+  // Handler filter/search
+  // =========================
   const handleChangeTab = (tab) => {
     setActiveTab(tab);
     setCurrentPage(1);
@@ -265,89 +261,169 @@ function ClientManagement() {
     setCurrentPage(1);
   };
 
-  const handleOpenDrawer = (client) => {
-    setSelectedClient(client);
-  };
-
-  const handleCloseDrawer = () => {
-    setSelectedClient(null);
-  };
-
+  // =========================
+  // Handler modal add/edit
+  // =========================
   const handleOpenAddModal = () => {
+    setFormMode("add");
     setFormData(emptyFormData);
-    setIsAddModalOpen(true);
+    setErrorMsg("");
+    setIsFormModalOpen(true);
   };
 
-  const handleCloseAddModal = () => {
-    setIsAddModalOpen(false);
-    setFormData(emptyFormData);
+  const handleOpenEditModal = (client) => {
+    setFormMode("edit");
+    setEditingClient(client);
+    setErrorMsg("");
+
+    setFormData({
+      name: client.name || "",
+      email: client.email || "",
+      phone: client.phone || "",
+      address: client.address || "",
+      status: client.status || "Active",
+      joined: client.joined ? String(client.joined).slice(0, 10) : "",
+    });
+
+    setSelectedClient(null);
+    setIsFormModalOpen(true);
   };
 
-  const handleDeleteClient = (clientId) => {
-    const confirmDelete = window.confirm("Yakin ingin menghapus client ini?");
-    if (!confirmDelete) return;
+  const handleCloseFormModal = () => {
+    if (submitLoading) return;
 
-    setClients((prev) => prev.filter((client) => client.id !== clientId));
-
-    if (selectedClient?.id === clientId) {
-      setSelectedClient(null);
-    }
+    setIsFormModalOpen(false);
+    setFormData(emptyFormData);
+    setSelectedClient(null);
+    setEditingClient(null);
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+
     setFormData((prev) => ({
       ...prev,
-      [name]: name === "totalSpent" ? value.replace(/\D/g, "") : value,
+      [name]: value,
     }));
   };
 
-  const handleAddClient = (e) => {
+  // =========================
+  // POST / PUT client ke backend
+  // =========================
+  const handleSubmitClient = async (e) => {
     e.preventDefault();
 
-    if (!formData.name || !formData.email || !formData.joined) {
-      alert("Nama, email, dan tanggal bergabung wajib diisi.");
+    if (!formData.name.trim() || !formData.email.trim() || !formData.joined) {
+      setErrorMsg("Nama, email, dan tanggal bergabung wajib diisi.");
       return;
     }
 
-    const newClient = {
-      id: Date.now(),
-      name: formData.name.trim(),
-      email: formData.email.trim(),
-      status: formData.status,
-      joined: formData.joined,
-      totalSpent: Number(formData.totalSpent || 0),
-      projects: formData.firstProjectName.trim()
-        ? [
-            {
-              id: Math.floor(Math.random() * 100000),
-              name: formData.firstProjectName.trim(),
-              status: formData.firstProjectStatus,
-            },
-          ]
-        : [],
-    };
+    try {
+      setSubmitLoading(true);
+      setErrorMsg("");
 
-    setClients((prev) => [newClient, ...prev]);
-    setCurrentPage(1);
-    handleCloseAddModal();
+      const payload = {
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
+        address: formData.address.trim(),
+        status: formData.status,
+        joined: formData.joined,
+      };
+
+      const isEdit = formMode === "edit" && editingClient?.id;
+      const url = isEdit
+        ? `${API_BASE_URL}/api/clients/${editingClient.id}`
+        : `${API_BASE_URL}/api/clients`;
+
+      const response = await fetch(url, {
+        method: isEdit ? "PUT" : "POST",
+        headers: getAuthHeaders(),
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || "Gagal menyimpan data client.");
+      }
+
+      await fetchClients();
+      setCurrentPage(1);
+      handleCloseFormModal();
+    } catch (error) {
+      setErrorMsg(error.message || "Terjadi kesalahan saat menyimpan data.");
+    } finally {
+      setSubmitLoading(false);
+    }
   };
 
-  const handleNavigateProject = (projectId) => {
-    navigate(`/project-detail/${projectId}`);
+  // =========================
+  // Buka modal delete custom
+  // =========================
+  const handleOpenDeleteModal = (client) => {
+    setDeleteTarget(client);
+    setDeleteError("");
+    setErrorMsg("");
   };
 
-  const startItem =
-    filteredClients.length === 0 ? 0 : (currentPage - 1) * rowsPerPage + 1;
-  const endItem = Math.min(currentPage * rowsPerPage, filteredClients.length);
+  const handleCloseDeleteModal = () => {
+    if (deleteLoading) return;
+
+    setDeleteTarget(null);
+    setDeleteError("");
+  };
+
+  // =========================
+  // DELETE client ke backend
+  // =========================
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget?.id) return;
+
+    try {
+      setDeleteLoading(true);
+      setDeleteError("");
+      setErrorMsg("");
+
+      const response = await fetch(
+        `${API_BASE_URL}/api/clients/${deleteTarget.id}`,
+        {
+          method: "DELETE",
+          headers: getAuthHeaders(),
+        },
+      );
+
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(result.message || "Gagal menghapus client.");
+      }
+
+      setClients((prev) =>
+        prev.filter((client) => client.id !== deleteTarget.id),
+      );
+
+      if (selectedClient?.id === deleteTarget.id) {
+        setSelectedClient(null);
+      }
+
+      setDeleteTarget(null);
+    } catch (error) {
+      setDeleteError(
+        error.message || "Terjadi kesalahan saat menghapus client.",
+      );
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
 
   return (
     <div className="client-page">
+      {/* Header halaman */}
       <div className="client-page__header">
         <div className="client-page__title-wrap">
           <span className="client-page__eyebrow">Client Management</span>
-          <h1>Data Client Interior</h1>
-          <p>Kelola data client dan lihat keterhubungannya dengan project.</p>
+          <h1>Client</h1>
         </div>
 
         <button
@@ -355,10 +431,22 @@ function ClientManagement() {
           className="client-btn client-btn--primary"
           onClick={handleOpenAddModal}
         >
-          + Add Client
+          <Plus size={18} />
+          Add Client
         </button>
       </div>
 
+      {/* Pesan error */}
+      {errorMsg && (
+        <div className="client-alert">
+          <span>{errorMsg}</span>
+          <button type="button" onClick={() => setErrorMsg("")}>
+            <X size={16} />
+          </button>
+        </div>
+      )}
+
+      {/* Toolbar filter dan search */}
       <div className="client-toolbar">
         <div className="client-tabs">
           {statusTabs.map((tab) => (
@@ -374,7 +462,7 @@ function ClientManagement() {
         </div>
 
         <div className="client-search">
-          <span className="client-search__icon">⌕</span>
+          <Search className="client-search__icon" size={17} />
           <input
             type="text"
             placeholder="Search clients..."
@@ -384,6 +472,7 @@ function ClientManagement() {
         </div>
       </div>
 
+      {/* Table client */}
       <div className="client-card">
         <div className="client-table-wrap">
           <table className="client-table">
@@ -399,12 +488,21 @@ function ClientManagement() {
             </thead>
 
             <tbody>
-              {paginatedClients.length > 0 ? (
+              {loading ? (
+                <tr>
+                  <td colSpan="6">
+                    <div className="client-empty">
+                      <Loader2 className="client-spin" size={22} />
+                      Loading data client...
+                    </div>
+                  </td>
+                </tr>
+              ) : paginatedClients.length > 0 ? (
                 paginatedClients.map((client) => (
                   <tr
                     key={client.id}
                     className="client-table__row"
-                    onClick={() => handleOpenDrawer(client)}
+                    onClick={() => setSelectedClient(client)}
                   >
                     <td>
                       <div className="client-user">
@@ -418,7 +516,7 @@ function ClientManagement() {
                             className="client-name-button"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleOpenDrawer(client);
+                              setSelectedClient(client);
                             }}
                           >
                             {client.name}
@@ -430,29 +528,48 @@ function ClientManagement() {
 
                     <td>
                       <span
-                        className={`client-status-badge ${statusClass(client.status)}`}
+                        className={`client-status-badge ${statusClass(
+                          client.status,
+                        )}`}
                       >
                         {client.status}
                       </span>
                     </td>
 
                     <td>{formatDate(client.joined)}</td>
-                    <td>{client.projects.length}</td>
+                    <td>{client.projectCount}</td>
+
                     <td className="client-table__money">
                       {formatCurrency(client.totalSpent)}
                     </td>
 
                     <td>
-                      <button
-                        type="button"
-                        className="client-btn client-btn--danger client-btn--sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteClient(client.id);
-                        }}
-                      >
-                        Delete
-                      </button>
+                      <div className="client-action-group">
+                        <button
+                          type="button"
+                          className="client-icon-btn client-icon-btn--edit"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedClient(client);
+                            handleOpenEditModal(client);
+                          }}
+                          title="Edit client"
+                        >
+                          <Pencil size={15} />
+                        </button>
+
+                        <button
+                          type="button"
+                          className="client-icon-btn client-icon-btn--danger"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenDeleteModal(client);
+                          }}
+                          title="Delete client"
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -460,6 +577,7 @@ function ClientManagement() {
                 <tr>
                   <td colSpan="6">
                     <div className="client-empty">
+                      <Users size={24} />
                       Tidak ada data client yang cocok.
                     </div>
                   </td>
@@ -469,6 +587,7 @@ function ClientManagement() {
           </table>
         </div>
 
+        {/* Footer table */}
         <div className="client-footer">
           <p>
             Showing {startItem}-{endItem} of {filteredClients.length} results
@@ -497,7 +616,9 @@ function ClientManagement() {
                 <button
                   key={page}
                   type="button"
-                  className={`client-page-btn ${currentPage === page ? "active" : ""}`}
+                  className={`client-page-btn ${
+                    currentPage === page ? "active" : ""
+                  }`}
                   onClick={() => setCurrentPage(page)}
                 >
                   {page}
@@ -517,26 +638,29 @@ function ClientManagement() {
         </div>
       </div>
 
+      {/* Drawer detail client */}
       {selectedClient &&
         createPortal(
           <>
             <div
               className="client-drawer-overlay"
-              onClick={handleCloseDrawer}
+              onClick={() => setSelectedClient(null)}
             />
+
             <aside className="client-drawer">
               <div className="client-drawer__header">
                 <div>
                   <h2>Client Detail</h2>
-                  <p>Informasi client dan riwayat project terkait.</p>
+                  <p>Informasi lengkap client interior.</p>
                 </div>
+
                 <button
                   type="button"
                   className="client-close-btn"
-                  onClick={handleCloseDrawer}
+                  onClick={() => setSelectedClient(null)}
                   aria-label="Tutup detail client"
                 >
-                  ×
+                  <X size={20} />
                 </button>
               </div>
 
@@ -550,7 +674,9 @@ function ClientManagement() {
                     <h3>{selectedClient.name}</h3>
                     <p>{selectedClient.email}</p>
                     <span
-                      className={`client-status-badge ${statusClass(selectedClient.status)}`}
+                      className={`client-status-badge ${statusClass(
+                        selectedClient.status,
+                      )}`}
                     >
                       {selectedClient.status}
                     </span>
@@ -559,15 +685,18 @@ function ClientManagement() {
 
                 <div className="drawer-section">
                   <h4>Client Info</h4>
+
                   <div className="drawer-info-grid">
                     <div className="drawer-info-card">
                       <span>Joined</span>
                       <strong>{formatDate(selectedClient.joined)}</strong>
                     </div>
+
                     <div className="drawer-info-card">
                       <span>Total Orders</span>
-                      <strong>{selectedClient.projects.length}</strong>
+                      <strong>{selectedClient.projectCount}</strong>
                     </div>
+
                     <div className="drawer-info-card">
                       <span>Total Spent</span>
                       <strong>
@@ -578,42 +707,44 @@ function ClientManagement() {
                 </div>
 
                 <div className="drawer-section">
-                  <h4>Riwayat Project</h4>
+                  <h4>Contact</h4>
 
-                  {selectedClient.projects.length > 0 ? (
-                    <div className="project-history">
-                      {selectedClient.projects.map((project) => (
-                        <div key={project.id} className="project-history__item">
-                          <div className="project-history__left">
-                            <button
-                              type="button"
-                              className="project-link"
-                              onClick={() => handleNavigateProject(project.id)}
-                            >
-                              {project.name}
-                            </button>
-                            <span
-                              className={`client-status-badge ${statusClass(project.status)}`}
-                            >
-                              {project.status}
-                            </span>
-                          </div>
+                  <div className="drawer-contact-list">
+                    <div>
+                      <span>Email</span>
+                      <strong>{selectedClient.email || "-"}</strong>
+                    </div>
 
-                          <button
-                            type="button"
-                            className="project-go-btn"
-                            onClick={() => handleNavigateProject(project.id)}
-                          >
-                            Open
-                          </button>
-                        </div>
-                      ))}
+                    <div>
+                      <span>Phone</span>
+                      <strong>{selectedClient.phone || "-"}</strong>
                     </div>
-                  ) : (
-                    <div className="drawer-empty">
-                      Client ini belum memiliki riwayat project.
+
+                    <div>
+                      <span>Address</span>
+                      <strong>{selectedClient.address || "-"}</strong>
                     </div>
-                  )}
+                  </div>
+                </div>
+
+                <div className="drawer-actions">
+                  <button
+                    type="button"
+                    className="client-btn client-btn--ghost"
+                    onClick={() => handleOpenEditModal(selectedClient)}
+                  >
+                    <Pencil size={16} />
+                    Edit Client
+                  </button>
+
+                  <button
+                    type="button"
+                    className="client-btn client-btn--danger-solid"
+                    onClick={() => handleOpenDeleteModal(selectedClient)}
+                  >
+                    <Trash2 size={16} />
+                    Delete Client
+                  </button>
                 </div>
               </div>
             </aside>
@@ -621,30 +752,39 @@ function ClientManagement() {
           document.body,
         )}
 
-      {isAddModalOpen &&
+      {/* Modal tambah/edit client */}
+      {isFormModalOpen &&
         createPortal(
           <>
             <div
               className="client-modal-overlay"
-              onClick={handleCloseAddModal}
+              onClick={handleCloseFormModal}
             />
+
             <div className="client-modal" onClick={(e) => e.stopPropagation()}>
               <div className="client-modal__header">
                 <div>
-                  <h3>Add New Client</h3>
-                  <p>Tambahkan client baru beserta project awal jika ada.</p>
+                  <h3>
+                    {formMode === "add" ? "Add New Client" : "Edit Client"}
+                  </h3>
+                  <p>
+                    {formMode === "add"
+                      ? "Tambahkan data client baru ke database."
+                      : "Perbarui data client yang sudah tersimpan."}
+                  </p>
                 </div>
+
                 <button
                   type="button"
                   className="client-close-btn"
-                  onClick={handleCloseAddModal}
-                  aria-label="Tutup modal tambah client"
+                  onClick={handleCloseFormModal}
+                  aria-label="Tutup modal"
                 >
-                  ×
+                  <X size={20} />
                 </button>
               </div>
 
-              <form className="client-form" onSubmit={handleAddClient}>
+              <form className="client-form" onSubmit={handleSubmitClient}>
                 <div className="client-form__grid">
                   <div className="client-form__group">
                     <label>Nama Client</label>
@@ -665,6 +805,17 @@ function ClientManagement() {
                       value={formData.email}
                       onChange={handleInputChange}
                       placeholder="contoh@email.com"
+                    />
+                  </div>
+
+                  <div className="client-form__group">
+                    <label>Phone</label>
+                    <input
+                      type="text"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      placeholder="Contoh: 08123456789"
                     />
                   </div>
 
@@ -690,40 +841,15 @@ function ClientManagement() {
                     />
                   </div>
 
-                  <div className="client-form__group">
-                    <label>Total Spent</label>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      name="totalSpent"
-                      value={formData.totalSpent}
-                      onChange={handleInputChange}
-                      placeholder="Contoh: 15000000"
-                    />
-                  </div>
-
-                  <div className="client-form__group">
-                    <label>Project Pertama (Opsional)</label>
-                    <input
-                      type="text"
-                      name="firstProjectName"
-                      value={formData.firstProjectName}
-                      onChange={handleInputChange}
-                      placeholder="Contoh: Interior Cafe Baru"
-                    />
-                  </div>
-
                   <div className="client-form__group client-form__group--full">
-                    <label>Status Project Pertama</label>
-                    <select
-                      name="firstProjectStatus"
-                      value={formData.firstProjectStatus}
+                    <label>Address</label>
+                    <textarea
+                      name="address"
+                      value={formData.address}
                       onChange={handleInputChange}
-                    >
-                      <option value="Pending">Pending</option>
-                      <option value="On Progress">On Progress</option>
-                      <option value="Completed">Completed</option>
-                    </select>
+                      placeholder="Alamat client"
+                      rows="3"
+                    />
                   </div>
                 </div>
 
@@ -731,20 +857,89 @@ function ClientManagement() {
                   <button
                     type="button"
                     className="client-btn client-btn--ghost"
-                    onClick={handleCloseAddModal}
+                    onClick={handleCloseFormModal}
+                    disabled={submitLoading}
                   >
                     Cancel
                   </button>
+
                   <button
                     type="submit"
                     className="client-btn client-btn--primary"
+                    disabled={submitLoading}
                   >
-                    Save Client
+                    {submitLoading && (
+                      <Loader2 className="client-spin" size={16} />
+                    )}
+                    {formMode === "add" ? "Save Client" : "Update Client"}
                   </button>
                 </div>
               </form>
             </div>
           </>,
+          document.body,
+        )}
+
+      {/* Modal delete custom sesuai patokan Delete Event */}
+      {deleteTarget &&
+        createPortal(
+          <div
+            className="client-delete-modal-overlay"
+            onClick={handleCloseDeleteModal}
+            role="presentation"
+          >
+            <div
+              className="client-delete-modal"
+              onClick={(e) => e.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="delete-client-title"
+            >
+              <button
+                type="button"
+                className="client-delete-modal__close"
+                onClick={handleCloseDeleteModal}
+                disabled={deleteLoading}
+                aria-label="Tutup modal"
+              >
+                <X size={22} />
+              </button>
+
+              <h3 id="delete-client-title">Delete Client</h3>
+
+              <p>
+                Are you sure you want to delete client{" "}
+                <strong>{deleteTarget.name}</strong>?
+              </p>
+
+              {deleteError && (
+                <div className="client-delete-modal__error">{deleteError}</div>
+              )}
+
+              <div className="client-delete-modal__actions">
+                <button
+                  type="button"
+                  className="client-btn client-btn--ghost"
+                  onClick={handleCloseDeleteModal}
+                  disabled={deleteLoading}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="button"
+                  className="client-btn client-btn--danger-solid"
+                  onClick={handleConfirmDelete}
+                  disabled={deleteLoading}
+                >
+                  {deleteLoading && (
+                    <Loader2 className="client-spin" size={16} />
+                  )}
+                  {deleteLoading ? "Deleting..." : "Delete"}
+                </button>
+              </div>
+            </div>
+          </div>,
           document.body,
         )}
     </div>

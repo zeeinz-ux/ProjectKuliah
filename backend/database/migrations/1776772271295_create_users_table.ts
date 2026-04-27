@@ -12,7 +12,7 @@ export default class extends BaseSchema {
       table.string('password').notNullable()
 
       table
-        .enum('role', ['super_admin', 'project_manager', 'finance'], {
+        .enum('role', ['admin', 'project_manager', 'finance'], {
           useNative: true,
           enumName: 'user_role_enum',
           existingType: false,

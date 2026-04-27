@@ -1,3 +1,5 @@
+@reference "../index.css";
+
 :root {
   --project-bg: #f6f8fb;
   --project-card: #ffffff;
@@ -27,10 +29,11 @@
    ========================================================= */
 .admin-project *,
 .detail-wrapper *,
-.project-modal * {
+.project-modal *,
+.project-confirm-card,
+.project-confirm-card * {
   box-sizing: border-box;
 }
-
 /* =========================================================
    Wrapper utama halaman
    ========================================================= */
@@ -158,6 +161,16 @@
 }
 
 /* =========================================================
+   Disabled button saat submit API
+   ========================================================= */
+.primary-btn:disabled,
+.secondary-btn:disabled,
+.new-project-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* =========================================================
    Cards umum
    ========================================================= */
 .admin-project .stat-card,
@@ -167,6 +180,90 @@
   background: var(--project-card);
   border: 1px solid var(--project-line);
   box-shadow: var(--project-shadow-sm);
+}
+
+/* =========================================================
+   Alert error API
+   Dipakai saat fetch / simpan / hapus project gagal
+   ========================================================= */
+.project-alert {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid #fecaca;
+  border-radius: 16px;
+  background: #fef2f2;
+  color: #dc2626;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.project-alert button {
+  width: 34px;
+  height: 34px;
+  margin-left: auto;
+  border: none;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #dc2626;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.project-alert button:hover {
+  background: #fee2e2;
+}
+
+/* =========================================================
+   Loading dan empty state database
+   Dipakai saat data project masih kosong / sedang loading
+   ========================================================= */
+.project-loading,
+.project-empty-main {
+  min-height: 260px;
+  padding: 32px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 24px;
+  background: #ffffff;
+  color: var(--project-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  text-align: center;
+  box-shadow: var(--project-shadow-sm);
+}
+
+.project-empty-main h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--project-text);
+}
+
+.project-empty-main p {
+  margin: 0;
+  color: var(--project-muted);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+/* =========================================================
+   Loading spinner
+   ========================================================= */
+.spin-icon {
+  animation: project-spin 0.8s linear infinite;
+}
+
+@keyframes project-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* =========================================================
@@ -714,7 +811,8 @@
 }
 
 /* =========================================================
-   Progress section
+   Progress section lama
+   Aman dibiarkan untuk fallback, meskipun TabProgress baru pakai Tailwind
    ========================================================= */
 .detail-wrapper .progress-bar-wrap {
   margin-bottom: 14px;
@@ -736,6 +834,16 @@
   background: linear-gradient(90deg, #22c55e 0%, #16a34a 100%);
 }
 
+.progress-auto-note {
+  margin: 12px 0 0;
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* =========================================================
+   Form umum detail page
+   ========================================================= */
 .detail-wrapper .inline-form {
   display: flex;
   gap: 10px;
@@ -827,7 +935,8 @@
 }
 
 /* =========================================================
-   Feed progress
+   Feed progress lama
+   Aman dibiarkan untuk fallback, meskipun Riwayat Progress baru pakai Tailwind
    ========================================================= */
 .detail-wrapper .progress-feed {
   display: flex;
@@ -956,6 +1065,12 @@
   border-color: var(--project-green);
 }
 
+.task-info {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
 .detail-wrapper .task-label {
   font-size: 14px;
   color: var(--project-text);
@@ -965,6 +1080,20 @@
 .detail-wrapper .task-item.done .task-label {
   color: var(--project-soft);
   text-decoration: line-through;
+}
+
+.task-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.task-item.done .task-date {
+  color: #22c55e;
 }
 
 .detail-wrapper .task-right {
@@ -1110,9 +1239,18 @@
     align-items: stretch;
   }
 
+  .detail-wrapper .task-clickable {
+    align-items: flex-start;
+  }
+
   .detail-wrapper .task-header {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .detail-wrapper .task-right {
+    justify-content: space-between;
+    width: 100%;
   }
 
   .admin-project .filter-count {
@@ -1139,5 +1277,350 @@
   .project-modal .modal-footer .primary-btn,
   .project-modal .modal-footer .secondary-btn {
     width: 100%;
+  }
+}
+
+/* =========================================================
+   Project Material Section
+   Dipakai di modal Tambah/Edit Project untuk memilih material dari Stok Material.
+   Styling ini sengaja dipisah dari Tailwind agar file JSX tetap rapi.
+   ========================================================= */
+.project-material-box {
+  margin-top: 24px;
+  padding: 18px;
+  border: 1px solid var(--project-line);
+  border-radius: 22px;
+  background: #f8fafc;
+}
+
+.project-material-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.project-material-head h4 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 6px;
+  color: var(--project-text);
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.project-material-head h4 svg {
+  color: #059669;
+}
+
+.project-material-head p {
+  margin: 0;
+  color: var(--project-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* =========================================================
+   Tombol Tambah Material
+   Dibuat seragam dengan tombol Tambah Proyek / primary button.
+   ========================================================= */
+.project-material-add-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 14px;
+  background: var(--project-green);
+  color: #ffffff;
+  box-shadow: 0 10px 22px rgba(22, 163, 74, 0.2);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: 0.2s ease;
+}
+
+.project-material-add-btn:hover {
+  background: #15803d;
+}
+
+.project-material-add-btn:disabled {
+  background: #cbd5e1;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.project-material-empty {
+  padding: 20px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 18px;
+  background: #ffffff;
+  color: var(--project-soft);
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.project-material-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.project-material-row-card {
+  padding: 14px;
+  border: 1px solid var(--project-line);
+  border-radius: 18px;
+  background: #ffffff;
+}
+
+.project-material-row-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 0.65fr 0.85fr auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.project-material-row-grid label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--project-soft);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.project-material-row-grid select,
+.project-material-row-grid input {
+  width: 100%;
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--project-line);
+  border-radius: 16px;
+  background: #ffffff;
+  color: var(--project-text);
+  outline: none;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  transition: 0.2s ease;
+}
+
+.project-material-row-grid select:focus,
+.project-material-row-grid input:focus {
+  border-color: #10b981;
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.14);
+}
+
+.project-material-row-grid p {
+  margin: 8px 0 0;
+  color: var(--project-soft);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.project-material-subtotal {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--project-line);
+  border-radius: 16px;
+  background: #f8fafc;
+  color: var(--project-text);
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.project-material-remove-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid #fecaca;
+  border-radius: 16px;
+  background: #fef2f2;
+  color: #ef4444;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.project-material-remove-btn:hover {
+  background: #fee2e2;
+}
+
+.project-material-total-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid #bbf7d0;
+  border-radius: 18px;
+  background: #ecfdf5;
+}
+
+.project-material-total-card p {
+  margin: 0 0 6px;
+  color: #059669;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.project-material-total-card strong {
+  display: block;
+  color: #065f46;
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.project-material-total-card button {
+  min-height: 42px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 16px;
+  background: #ffffff;
+  color: #047857;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 900;
+  transition: 0.2s ease;
+}
+
+.project-material-total-card button:hover {
+  background: #d1fae5;
+}
+/* =========================================================
+   Project Confirm / Alert Modal
+   Style mengikuti patokan Delete Event
+   Ukuran compact agar tidak terlalu besar
+   Aman untuk browser scale 75% dan 100%
+   ========================================================= */
+
+.project-confirm-overlay {
+  @apply fixed inset-0 z-[1000000] flex items-center justify-center bg-slate-900/40 p-5 backdrop-blur-[9px];
+
+  animation: projectConfirmOverlayIn 0.18s ease;
+}
+
+.project-confirm-card {
+  @apply relative rounded-[28px] bg-white px-[26px] pb-[26px] pt-[30px] text-left shadow-[0_30px_90px_rgba(15,23,42,0.28)];
+
+  width: min(440px, calc(100vw - 32px));
+  animation: projectConfirmCardIn 0.18s ease;
+}
+
+.project-confirm-close {
+  @apply absolute right-6 top-6 inline-flex h-[42px] w-[42px] cursor-pointer items-center justify-center rounded-full border-0 bg-slate-100 text-slate-500 transition hover:bg-slate-200 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-65;
+}
+
+.project-confirm-card h3 {
+  @apply m-0 max-w-[calc(100%-58px)] text-[25px] font-black leading-tight tracking-[-0.04em] text-slate-900;
+}
+
+.project-confirm-card p {
+  @apply mt-3.5 text-sm font-medium leading-7 text-slate-500;
+}
+
+.project-confirm-card p strong {
+  @apply font-black text-slate-900;
+}
+
+.project-confirm-error {
+  @apply mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-3.5 py-3 text-[13px] font-extrabold leading-normal text-rose-600;
+}
+
+.project-confirm-actions {
+  @apply mt-7 flex items-center justify-end gap-3;
+}
+
+.project-confirm-cancel-btn,
+.project-confirm-danger-btn {
+  @apply min-h-[50px] min-w-[92px] cursor-pointer rounded-[17px] px-[22px] text-[15px] font-black transition disabled:cursor-not-allowed disabled:opacity-65 disabled:hover:translate-y-0;
+}
+
+.project-confirm-cancel-btn {
+  @apply border border-slate-200 bg-white text-slate-900 hover:border-slate-300 hover:bg-slate-50;
+}
+
+.project-confirm-danger-btn {
+  @apply border-0 bg-[#ef0012] text-white hover:-translate-y-0.5 hover:bg-[#dc0010];
+}
+
+@keyframes projectConfirmOverlayIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes projectConfirmCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+/* =========================================================
+   Responsive tambahan khusus material project dan popup
+   ========================================================= */
+@media (max-width: 768px) {
+  .project-material-head,
+  .project-material-total-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .project-material-add-btn,
+  .project-material-total-card button {
+    width: 100%;
+  }
+
+  .project-material-row-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .project-material-remove-btn {
+    width: 100%;
+  }
+
+  .project-confirm-card {
+    @apply w-full rounded-3xl px-[22px] pb-[22px] pt-[30px];
+  }
+
+  .project-confirm-close {
+    @apply right-5 top-5 h-10 w-10;
+  }
+
+  .project-confirm-card h3 {
+    @apply text-[23px];
+  }
+
+  .project-confirm-actions {
+    @apply flex-col-reverse items-stretch;
+  }
+
+  .project-confirm-cancel-btn,
+  .project-confirm-danger-btn {
+    @apply w-full;
   }
 }

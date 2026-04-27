@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import "../css/AdminLayout.css";
 import logo from "../assets/logo.svg";
 import {
-  FiChevronDown,
   FiChevronLeft,
   FiChevronRight,
   FiGrid,
@@ -17,96 +16,80 @@ import {
   FiSettings,
   FiLogOut,
   FiUser,
+  FiCalendar,
+  FiMessageCircle,
+  FiBell,
 } from "react-icons/fi";
 
 const COMPANY_NAME = "Medtic Indonesia";
 const COMPANY_LOGO = logo;
 
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL ||
+  import.meta.env.VITE_API_BASE_URL ||
+  "http://localhost:3333";
+
+function getAvatarUrl(value) {
+  if (!value) return "";
+
+  const avatar = String(value);
+
+  if (avatar.startsWith("http://") || avatar.startsWith("https://")) {
+    return avatar;
+  }
+
+  if (avatar.startsWith("/")) {
+    return `${API_BASE_URL}${avatar}`;
+  }
+
+  return `${API_BASE_URL}/${avatar}`;
+}
+
+function getInitialName(name) {
+  const cleanName = String(name || "").trim();
+
+  if (!cleanName) return "A";
+
+  return cleanName.charAt(0).toUpperCase();
+}
+
+function formatRoleLabel(role = "") {
+  if (!role) return "Admin";
+
+  return role
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
 const menuSections = [
   {
     title: "Overview",
     items: [
-      {
-        type: "link",
-        to: "/admin",
-        label: "Dashboard",
-        exact: true,
-        icon: FiGrid,
-      },
-      {
-        type: "link",
-        to: "/admin/projects",
-        label: "Project",
-        icon: FiTrendingUp,
-      },
-      // {
-      //   type: "link",
-      //   to: "/admin/progress",
-      //   label: "Progress",
-      //   icon: FiTrendingUp,
-      // },
-      {
-        type: "link",
-        to: "/admin/materials",
-        label: "Stok Material",
-        icon: FiBox,
-      },
+      { to: "/admin", label: "Dashboard", exact: true, icon: FiGrid },
+      { to: "/admin/projects", label: "Project", icon: FiTrendingUp },
+      { to: "/admin/materials", label: "Stok Material", icon: FiBox },
+      { to: "/admin/calendar", label: "Calendar", icon: FiCalendar },
     ],
   },
   {
     title: "Commerce",
     items: [
-      {
-        type: "link",
-        to: "/admin/clients",
-        label: "Client",
-        icon: FiUsers,
-      },
-      {
-        type: "link",
-        to: "/admin/documentation",
-        label: "Files",
-        icon: FiFolder,
-      },
-      {
-        type: "link",
-        to: "/admin/laporan",
-        label: "Laporan",
-        icon: FiFileText,
-      },
+      // { to: "/admin/chat", label: "Chat", icon: FiMessageCircle },
+      { to: "/admin/clients", label: "Client", icon: FiUsers },
+      { to: "/admin/documentation", label: "Files", icon: FiFolder },
+      { to: "/admin/laporan", label: "Laporan", icon: FiFileText },
     ],
   },
   {
     title: "Management",
     items: [
-      {
-        type: "link",
-        to: "/admin/users",
-        label: "Users",
-        icon: FiUser,
-      },
-      {
-        type: "link",
-        to: "/admin/settings",
-        label: "Settings",
-        icon: FiSettings,
-      },
+      { to: "/admin/users", label: "Users", icon: FiUser },
+      { to: "/admin/notifications", label: "Notifications", icon: FiBell },
+      { to: "/admin/settings", label: "Settings", icon: FiSettings },
     ],
   },
 ];
-
-function getInitialOpenMenus(pathname) {
-  return {
-    project: pathname.startsWith("/admin/projects"),
-    progress: pathname.startsWith("/admin/progress"),
-    material: pathname.startsWith("/admin/materials"),
-    client: pathname.startsWith("/admin/clients"),
-    documentation: pathname.startsWith("/admin/documentation"),
-    reports: pathname.startsWith("/admin/reports"),
-    users: pathname.startsWith("/admin/users"),
-    settings: pathname.startsWith("/admin/settings"),
-  };
-}
 
 export default function AdminLayout() {
   const navigate = useNavigate();
@@ -115,34 +98,73 @@ export default function AdminLayout() {
   const [user, setUser] = useState(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const [openMenus, setOpenMenus] = useState(() =>
-    getInitialOpenMenus(location.pathname),
-  );
+  const [avatarFailed, setAvatarFailed] = useState(false);
 
-  useEffect(() => {
+  const loadUserFromStorage = () => {
     const raw = localStorage.getItem("user");
-    if (!raw) return;
+
+    if (!raw) {
+      setUser(null);
+      return null;
+    }
 
     try {
       const parsed = JSON.parse(raw);
       setUser(parsed);
+      return parsed;
     } catch {
-      // biarkan, ProtectedRoute sudah meng-handle auth
+      setUser(null);
+      return null;
     }
-  }, []);
+  };
+
+  const fetchCurrentUser = async () => {
+    const token = localStorage.getItem("token");
+
+    if (!token) return;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/me`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) return;
+
+      const latestUser = data?.user || data;
+
+      localStorage.setItem("user", JSON.stringify(latestUser));
+      setUser(latestUser);
+    } catch {
+      // fallback tetap pakai localStorage
+    }
+  };
 
   useEffect(() => {
-    const autoOpenMenus = getInitialOpenMenus(location.pathname);
-
-    setOpenMenus((prev) => ({
-      ...prev,
-      ...Object.fromEntries(
-        Object.entries(autoOpenMenus).filter(([, value]) => value),
-      ),
-    }));
-
+    loadUserFromStorage();
+    fetchCurrentUser();
     setIsMobileSidebarOpen(false);
   }, [location.pathname]);
+
+  useEffect(() => {
+    const handleUserUpdated = () => {
+      loadUserFromStorage();
+      fetchCurrentUser();
+    };
+
+    window.addEventListener("auth-user-updated", handleUserUpdated);
+    window.addEventListener("storage", handleUserUpdated);
+
+    return () => {
+      window.removeEventListener("auth-user-updated", handleUserUpdated);
+      window.removeEventListener("storage", handleUserUpdated);
+    };
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -154,35 +176,14 @@ export default function AdminLayout() {
     setIsCollapsed((prev) => !prev);
   };
 
-  const isPathActive = (path, exact = false) => {
-    if (exact) return location.pathname === path;
-    return location.pathname.startsWith(path);
-  };
-
-  const isGroupActive = (children = []) => {
-    return children.some((child) => isPathActive(child.to, child.exact));
-  };
-
-  const toggleMenu = (key) => {
-    if (isCollapsed) {
-      setIsCollapsed(false);
-      return;
-    }
-
-    setOpenMenus((prev) => ({
-      ...prev,
-      [key]: !prev[key],
-    }));
-  };
-
   const displayName = user?.full_name || user?.email || "Administrator";
+  const avatarUrl = getAvatarUrl(user?.avatar);
+  const avatarInitial = getInitialName(displayName);
+  const roleLabel = formatRoleLabel(user?.role);
 
-  const roleLabel = user?.role
-    ? user.role
-        .split("_")
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(" ")
-    : "Admin";
+  useEffect(() => {
+    setAvatarFailed(false);
+  }, [avatarUrl]);
 
   return (
     <div className={`admin-layout ${isCollapsed ? "sidebar-collapsed" : ""}`}>
@@ -215,16 +216,6 @@ export default function AdminLayout() {
 
           <button
             type="button"
-            className="sidebar-toggle sidebar-toggle--desktop sidebar-toggle--floating"
-            onClick={toggleSidebar}
-            aria-label={isCollapsed ? "Perbesar sidebar" : "Kecilkan sidebar"}
-            title={isCollapsed ? "Perbesar sidebar" : "Kecilkan sidebar"}
-          >
-            {isCollapsed ? <FiChevronRight /> : <FiChevronLeft />}
-          </button>
-
-          <button
-            type="button"
             className="sidebar-toggle sidebar-toggle--mobile"
             onClick={() => setIsMobileSidebarOpen(false)}
             aria-label="Tutup sidebar mobile"
@@ -241,76 +232,24 @@ export default function AdminLayout() {
 
               <div className="menu-section__items">
                 {section.items.map((item) => {
-                  if (item.type === "link") {
-                    const Icon = item.icon;
-
-                    return (
-                      <NavLink
-                        key={item.to}
-                        to={item.to}
-                        end={item.exact}
-                        onClick={() => setIsMobileSidebarOpen(false)}
-                        className={({ isActive }) =>
-                          `menu-link ${isActive ? "active" : ""}`
-                        }
-                      >
-                        <span className="menu-icon">
-                          <Icon />
-                        </span>
-                        <span className="menu-text">{item.label}</span>
-                      </NavLink>
-                    );
-                  }
-
                   const Icon = item.icon;
-                  const groupActive = isGroupActive(item.children);
-                  const groupOpen = openMenus[item.key];
 
                   return (
-                    <div
-                      className={`menu-group ${
-                        groupActive ? "menu-group--active" : ""
-                      }`}
-                      key={item.key}
+                    <NavLink
+                      key={item.to}
+                      to={item.to}
+                      end={item.exact}
+                      onClick={() => setIsMobileSidebarOpen(false)}
+                      title={isCollapsed ? item.label : ""}
+                      className={({ isActive }) =>
+                        `menu-link ${isActive ? "active" : ""}`
+                      }
                     >
-                      <button
-                        type="button"
-                        className={`menu-link menu-link--button ${
-                          groupActive ? "active-parent" : ""
-                        }`}
-                        onClick={() => toggleMenu(item.key)}
-                      >
-                        <span className="menu-icon">
-                          <Icon />
-                        </span>
-                        <span className="menu-text">{item.label}</span>
-                        <span
-                          className={`menu-chevron ${
-                            groupOpen ? "menu-chevron--open" : ""
-                          }`}
-                        >
-                          <FiChevronDown />
-                        </span>
-                      </button>
-
-                      {!isCollapsed && groupOpen && (
-                        <div className="submenu">
-                          {item.children.map((child) => (
-                            <NavLink
-                              key={child.to}
-                              to={child.to}
-                              onClick={() => setIsMobileSidebarOpen(false)}
-                              className={({ isActive }) =>
-                                `submenu-link ${isActive ? "active" : ""}`
-                              }
-                            >
-                              <span className="submenu-bullet" />
-                              <span>{child.label}</span>
-                            </NavLink>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                      <span className="menu-icon">
+                        <Icon />
+                      </span>
+                      <span className="menu-text">{item.label}</span>
+                    </NavLink>
                   );
                 })}
               </div>
@@ -322,7 +261,20 @@ export default function AdminLayout() {
           <div className="profile-card">
             <div className="profile-card__left">
               <div className="profile-avatar">
-                <FiUser />
+                {avatarUrl && !avatarFailed ? (
+                  <img
+                    src={avatarUrl}
+                    alt={displayName}
+                    className="profile-avatar-image"
+                    onError={() => setAvatarFailed(true)}
+                  />
+                ) : avatarInitial ? (
+                  <span className="profile-avatar-initial">
+                    {avatarInitial}
+                  </span>
+                ) : (
+                  <FiUser />
+                )}
               </div>
 
               <div className="profile-info">
@@ -344,6 +296,16 @@ export default function AdminLayout() {
         </div>
       </aside>
 
+      <button
+        type="button"
+        className="sidebar-toggle sidebar-toggle--desktop layout-toggle-outside"
+        onClick={toggleSidebar}
+        aria-label={isCollapsed ? "Perbesar sidebar" : "Kecilkan sidebar"}
+        title={isCollapsed ? "Perbesar sidebar" : "Kecilkan sidebar"}
+      >
+        {isCollapsed ? <FiChevronRight /> : <FiChevronLeft />}
+      </button>
+
       <div className="admin-main">
         <header className="admin-topbar">
           <div className="admin-topbar__left">
@@ -352,6 +314,7 @@ export default function AdminLayout() {
               className="mobile-menu-btn"
               onClick={() => setIsMobileSidebarOpen(true)}
               aria-label="Buka sidebar"
+              title="Buka sidebar"
             >
               ☰
             </button>

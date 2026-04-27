@@ -408,7 +408,9 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
           </div>
 
           <h3>
-            {formData.firstName || "First"} {formData.lastName || "Last"}
+            {[formData.firstName, formData.lastName]
+              .filter(Boolean)
+              .join(" ") || "User"}
           </h3>
           <p>{formData.email || "email@example.com"}</p>
           <small className="avatar-role-text">

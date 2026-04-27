@@ -6,11 +6,15 @@ export default class AdminMiddleware {
     const user = (request as any).user
 
     if (!user) {
-      return response.unauthorized({ message: 'Akses tidak sah' })
+      return response.unauthorized({
+        message: 'Akses tidak sah. Silakan login terlebih dahulu.',
+      })
     }
 
-    if (user.role !== 'super_admin') {
-      return response.forbidden({ message: 'Hanya Super Admin yang bisa melakukan aksi ini' })
+    if (user.role !== 'admin') {
+      return response.forbidden({
+        message: 'Akses ditolak. Fitur ini hanya bisa diakses oleh Admin.',
+      })
     }
 
     return await next()
