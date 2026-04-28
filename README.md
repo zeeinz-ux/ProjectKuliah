@@ -320,7 +320,7 @@ Akun default yang dibuat/update:
 
 ```txt
 Email    : admin@example.com
-Password : adminpassword
+Password : admin12345
 Role     : admin
 ```
 
