@@ -573,7 +573,7 @@ Jika berhasil, akan muncul output seperti:
 [ success ] Admin siap digunakan.
 ID: 4
 Email: admin@example.com
-Password: adminpassword
+Password: admin12345
 ```
 
 Akun default:
@@ -581,7 +581,7 @@ Akun default:
 | Field    | Value               |
 | -------- | ------------------- |
 | Email    | `admin@example.com` |
-| Password | `adminpassword`     |
+| Password | `12345`     |
 | Role     | `admin`             |
 | Status   | `Active`            |
 
